@@ -24,20 +24,29 @@ export default function Home() {
   const previewUser = username.trim() || 'octocat';
   const previewRepo = repo.trim() || 'GitGlyph';
 
-  // Values for README copy snippet
-  const snippetUser = username.trim() || 'YOUR_USERNAME';
-  const snippetRepo = repo.trim() || 'YOUR_REPO';
-
-  const buildQuery = (user: string, extra: Record<string, string> = {}) => {
+  // Build query string. In self-hosted setups, omit username and repo unless explicitly typed
+  const buildQuery = (isSnippet: boolean, extra: Record<string, string> = {}) => {
     const params = new URLSearchParams();
-    if (user) params.set('username', user);
+
+    // If generating README snippet, only add username if explicitly typed as an override
+    if (isSnippet) {
+      if (username.trim()) params.set('username', username.trim());
+    } else {
+      if (previewUser) params.set('username', previewUser);
+    }
+
     if (theme && theme !== 'light') params.set('theme', theme);
     if (layout === 'vertical') params.set('layout', 'vertical');
     if (hideBorder) params.set('hide_border', 'true');
 
     for (const [k, v] of Object.entries(extra)) {
-      params.set(k, v);
+      if (isSnippet) {
+        if (k === 'repo' && repo.trim()) params.set('repo', repo.trim());
+      } else {
+        if (v) params.set(k, v);
+      }
     }
+
     const q = params.toString();
     return q ? `?${q}` : '';
   };
@@ -67,8 +76,8 @@ export default function Home() {
       id: 'stats',
       title: 'Public Stats Card',
       desc: 'Showcases open-source stars, public commits, PRs, issues, repos, and followers.',
-      previewUrl: `/api/stats${buildQuery(previewUser)}`,
-      snippetUrl: `${readmeBaseUrl}/api/stats${buildQuery(snippetUser)}`,
+      previewUrl: `/api/stats${buildQuery(false)}`,
+      snippetUrl: `${readmeBaseUrl}/api/stats${buildQuery(true)}`,
       width: layout === 'vertical' ? 320 : 450,
       height: layout === 'vertical' ? 285 : 195,
     },
@@ -76,8 +85,8 @@ export default function Home() {
       id: 'streak',
       title: 'Public Contribution Streak',
       desc: 'Visualizes current contribution streak, all-time max streak, and total year contributions.',
-      previewUrl: `/api/streak${buildQuery(previewUser)}`,
-      snippetUrl: `${readmeBaseUrl}/api/streak${buildQuery(snippetUser)}`,
+      previewUrl: `/api/streak${buildQuery(false)}`,
+      snippetUrl: `${readmeBaseUrl}/api/streak${buildQuery(true)}`,
       width: layout === 'vertical' ? 320 : 450,
       height: layout === 'vertical' ? 270 : 195,
     },
@@ -85,8 +94,8 @@ export default function Home() {
       id: 'languages',
       title: 'Top Languages Card',
       desc: 'Displays percentage breakdown of top used programming languages with proportional color bar.',
-      previewUrl: `/api/languages${buildQuery(previewUser)}`,
-      snippetUrl: `${readmeBaseUrl}/api/languages${buildQuery(snippetUser)}`,
+      previewUrl: `/api/languages${buildQuery(false)}`,
+      snippetUrl: `${readmeBaseUrl}/api/languages${buildQuery(true)}`,
       width: 450,
       height: 195,
     },
@@ -94,8 +103,8 @@ export default function Home() {
       id: 'pin',
       title: 'Pinned Repository Card',
       desc: 'Showcases a specific public repository with description, language badge, stars, and forks.',
-      previewUrl: `/api/pin${buildQuery(previewUser, { repo: previewRepo })}`,
-      snippetUrl: `${readmeBaseUrl}/api/pin${buildQuery(snippetUser, { repo: snippetRepo })}`,
+      previewUrl: `/api/pin${buildQuery(false, { repo: previewRepo })}`,
+      snippetUrl: `${readmeBaseUrl}/api/pin${buildQuery(true, { repo: repo.trim() })}`,
       width: 450,
       height: 140,
     },
@@ -120,16 +129,16 @@ export default function Home() {
               Playground
             </a>
             <a
-              href="#endpoints"
-              className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
-            >
-              Endpoints
-            </a>
-            <a
               href="#parameters"
               className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
             >
               Parameters
+            </a>
+            <a
+              href="#deployment"
+              className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+            >
+              Self-Hosting
             </a>
             <a
               href="https://github.com/AhmedTrooper/GitGlyph"
@@ -137,7 +146,7 @@ export default function Home() {
               rel="noopener noreferrer"
               className="px-3 py-1.5 rounded-lg border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
             >
-              GitHub ↗
+              Fork on GitHub ↗
             </a>
           </div>
         </div>
@@ -145,10 +154,10 @@ export default function Home() {
 
       {/* Hero Section */}
       <header className="max-w-6xl mx-auto px-6 pt-16 pb-12 text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 mb-6">
-          <span>🚀 Vercel Edge Cached</span>
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 mb-6">
+          <span>🛡️ Self-Hosted &amp; Forkable</span>
           <span>•</span>
-          <span>5-Hour CDN Expiry</span>
+          <span>Zero URL Clutter</span>
         </div>
         <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50 max-w-3xl mx-auto leading-tight">
           Dynamic GitHub SVG Cards for your{' '}
@@ -157,32 +166,24 @@ export default function Home() {
           </span>
         </h1>
         <p className="mt-5 text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto leading-relaxed">
-          Generate real-time public stats, streak tracking, top languages, and pinned repository cards.
-          Served through Vercel&apos;s Edge CDN with zero database requirements and zero compute usage during cache hits.
+          Fork this repository, deploy to Vercel with your GitHub token, and embed clean URLs like{' '}
+          <code className="px-1.5 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 font-mono text-xs">/api/stats</code> directly in your README.
+          No query parameters required for self-hosted instances.
         </p>
       </header>
 
       {/* Interactive Playground & Live Preview */}
       <section id="playground" className="max-w-6xl mx-auto px-6 pb-20">
         <div className="p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/70 shadow-sm mb-10">
-          <h2 className="text-base font-bold uppercase tracking-wider text-zinc-500 mb-4">
-            Interactive Customizer
-          </h2>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+            <h2 className="text-base font-bold uppercase tracking-wider text-zinc-500">
+              Interactive Customizer
+            </h2>
+            <span className="text-xs text-zinc-400">
+              In your self-hosted instance, URLs don&apos;t need username query params
+            </span>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            {/* Username Input */}
-            <div>
-              <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                GitHub Username
-              </label>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="octocat"
-                className="w-full px-3 py-2 text-sm rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
             {/* Theme Selector */}
             <div>
               <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
@@ -216,17 +217,31 @@ export default function Home() {
               </select>
             </div>
 
-            {/* Pinned Repo Input */}
+            {/* Optional Username Override */}
             <div>
               <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                Pinned Repository
+                Username Override <span className="text-zinc-400">(Optional)</span>
+              </label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Defaults to GITHUB_USERNAME"
+                className="w-full px-3 py-2 text-sm rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-mono placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs"
+              />
+            </div>
+
+            {/* Optional Pinned Repo Override */}
+            <div>
+              <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
+                Repo Override <span className="text-zinc-400">(Optional)</span>
               </label>
               <input
                 type="text"
                 value={repo}
                 onChange={(e) => setRepo(e.target.value)}
-                placeholder="GitGlyph"
-                className="w-full px-3 py-2 text-sm rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Defaults to GITHUB_REPO"
+                className="w-full px-3 py-2 text-sm rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-mono placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs"
               />
             </div>
 
@@ -276,7 +291,7 @@ export default function Home() {
                       onClick={() => copyToClipboard(markdownCode, card.id)}
                       className="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-500 shadow-sm transition-colors"
                     >
-                      {copiedId === card.id ? '✓ Copied Markdown' : 'Copy Markdown'}
+                      {copiedId === card.id ? '✓ Copied Clean Markdown' : 'Copy Markdown'}
                     </button>
                   </div>
                 </div>
@@ -295,8 +310,11 @@ export default function Home() {
 
                 {/* Markdown Snippet Code Block */}
                 <div>
-                  <div className="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-2">
-                    Markdown for README
+                  <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-2">
+                    <span>Clean Markdown for your README</span>
+                    <span className="normal-case text-zinc-400 font-normal">
+                      Uses your configured environment variables automatically
+                    </span>
                   </div>
                   <pre className="p-3 rounded-lg bg-zinc-950 text-zinc-200 text-xs font-mono overflow-x-auto border border-zinc-800">
                     <code>{markdownCode}</code>
@@ -311,10 +329,10 @@ export default function Home() {
       {/* Query Parameters Reference Table */}
       <section id="parameters" className="max-w-6xl mx-auto px-6 py-16 border-t border-zinc-200 dark:border-zinc-800">
         <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 mb-2">
-          Query Parameters Reference
+          Optional Query Parameters
         </h2>
         <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-8">
-          Customize any card on the fly using standard URL query parameters.
+          In your self-hosted setup, all cards work out of the box with zero parameters. Use these parameters only when you want to customize appearance:
         </p>
 
         <div className="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
@@ -322,18 +340,12 @@ export default function Home() {
             <thead className="border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300 font-semibold">
               <tr>
                 <th className="p-4">Parameter</th>
-                <th className="p-4">Default</th>
+                <th className="p-4">Default Source</th>
                 <th className="p-4">Allowed Values</th>
                 <th className="p-4">Description</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800 font-mono text-xs">
-              <tr>
-                <td className="p-4 font-semibold text-blue-600 dark:text-blue-400">username</td>
-                <td className="p-4 text-zinc-500">GITHUB_USERNAME</td>
-                <td className="p-4 text-zinc-700 dark:text-zinc-300">string (e.g. torvalds)</td>
-                <td className="p-4 font-sans text-zinc-600 dark:text-zinc-400">Target GitHub account handle.</td>
-              </tr>
               <tr>
                 <td className="p-4 font-semibold text-blue-600 dark:text-blue-400">theme</td>
                 <td className="p-4 text-zinc-500">&apos;light&apos;</td>
@@ -347,16 +359,22 @@ export default function Home() {
                 <td className="p-4 font-sans text-zinc-600 dark:text-zinc-400">Orientation for Stats and Streak cards. Vertical is ideal for sidebars.</td>
               </tr>
               <tr>
-                <td className="p-4 font-semibold text-blue-600 dark:text-blue-400">repo</td>
-                <td className="p-4 text-zinc-500">GITHUB_REPO</td>
-                <td className="p-4 text-zinc-700 dark:text-zinc-300">repo-name or owner/repo</td>
-                <td className="p-4 font-sans text-zinc-600 dark:text-zinc-400">Repository to showcase for the /api/pin endpoint.</td>
-              </tr>
-              <tr>
                 <td className="p-4 font-semibold text-blue-600 dark:text-blue-400">hide_border</td>
                 <td className="p-4 text-zinc-500">&apos;false&apos;</td>
                 <td className="p-4 text-zinc-700 dark:text-zinc-300">true, false</td>
                 <td className="p-4 font-sans text-zinc-600 dark:text-zinc-400">Hides the outer stroke for borderless blending.</td>
+              </tr>
+              <tr>
+                <td className="p-4 font-semibold text-blue-600 dark:text-blue-400">username</td>
+                <td className="p-4 text-zinc-500">GITHUB_USERNAME env</td>
+                <td className="p-4 text-zinc-700 dark:text-zinc-300">string</td>
+                <td className="p-4 font-sans text-zinc-600 dark:text-zinc-400">Optional override. Not needed in self-hosted setups as it defaults to your env variable.</td>
+              </tr>
+              <tr>
+                <td className="p-4 font-semibold text-blue-600 dark:text-blue-400">repo</td>
+                <td className="p-4 text-zinc-500">GITHUB_REPO env</td>
+                <td className="p-4 text-zinc-700 dark:text-zinc-300">repo-name or owner/repo</td>
+                <td className="p-4 font-sans text-zinc-600 dark:text-zinc-400">Optional override for /api/pin. Defaults to your GITHUB_REPO environment variable.</td>
               </tr>
               <tr>
                 <td className="p-4 font-semibold text-blue-600 dark:text-blue-400">custom_title</td>
@@ -376,12 +394,12 @@ export default function Home() {
       </section>
 
       {/* Deployment & Free Vercel Setup */}
-      <section className="max-w-6xl mx-auto px-6 py-16 border-t border-zinc-200 dark:border-zinc-800">
+      <section id="deployment" className="max-w-6xl mx-auto px-6 py-16 border-t border-zinc-200 dark:border-zinc-800">
         <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 mb-2">
-          Vercel Free Tier Deployment
+          Self-Hosting on Vercel Free Tier
         </h2>
         <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-8">
-          GitGlyph is designed from the ground up to operate smoothly on Vercel&apos;s free Hobby tier without timeouts.
+          Fork this repository to your personal GitHub, link it to Vercel, and set your private credentials once.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -391,27 +409,27 @@ export default function Home() {
               1. Add Environment Variables
             </h3>
             <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
-              Add <code className="font-mono text-blue-500">GITHUB_TOKEN</code> (PAT with 0 scopes for 5,000 req/hr), <code className="font-mono text-blue-500">GITHUB_USERNAME</code> (default user), and <code className="font-mono text-blue-500">GITHUB_REPO</code> (default pinned repo) in Vercel Project Settings.
+              Add <code className="font-mono text-blue-500">GITHUB_TOKEN</code> (PAT with 0 scopes for 5,000 req/hr), <code className="font-mono text-blue-500">GITHUB_USERNAME</code> (your handle), and <code className="font-mono text-blue-500">GITHUB_REPO</code> in Vercel Project Settings.
             </p>
           </div>
 
           <div className="p-5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
             <div className="text-2xl mb-2">⚡</div>
             <h3 className="font-semibold text-sm mb-1 text-zinc-900 dark:text-zinc-100">
-              2. Single GraphQL Query
+              2. Clean Embed URLs
             </h3>
             <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
-              Requests resolve in ~200ms using a single round-trip, well beneath Vercel&apos;s 10-second serverless execution threshold.
+              Embed clean URLs like <code className="font-mono text-blue-500">https://your-app.vercel.app/api/stats</code> without passing usernames in the URL.
             </p>
           </div>
 
           <div className="p-5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
             <div className="text-2xl mb-2">🛡️</div>
             <h3 className="font-semibold text-sm mb-1 text-zinc-900 dark:text-zinc-100">
-              3. Global Edge CDN Cache
+              3. Edge CDN Cache
             </h3>
             <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
-              Cached for 5 hours via <code className="font-mono text-blue-500">s-maxage=18000</code>. Subsequent views consume zero serverless function execution quotas.
+              Cached for 5 hours via <code className="font-mono text-blue-500">s-maxage=18000</code>. Zero compute hours are consumed during active readme views.
             </p>
           </div>
         </div>
@@ -419,7 +437,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="w-full border-t border-zinc-200 dark:border-zinc-800 py-8 text-center text-xs text-zinc-500">
-        GitGlyph · Edge-cached GitHub Stats Generator · Built with Next.js &amp; Vercel Edge CDN
+        GitGlyph · Self-Hosted Dynamic GitHub Stats · Built with Next.js &amp; Vercel Edge CDN
       </footer>
     </div>
   );
