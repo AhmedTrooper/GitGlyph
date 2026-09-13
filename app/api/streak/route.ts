@@ -6,11 +6,22 @@ import { renderErrorCard } from '@/lib/renderCard';
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
 
-  // 1. Resolve username
+  // 1. Resolve username: query param -> GITHUB_USERNAME env var
   const username =
     searchParams.get('username')?.trim() ||
     process.env.GITHUB_USERNAME?.trim() ||
-    'octocat';
+    '';
+
+  if (!username) {
+    const errorSvg = renderErrorCard('Missing username. Set GITHUB_USERNAME in environment or pass ?username=');
+    return new NextResponse(errorSvg, {
+      status: 200,
+      headers: {
+        'Content-Type': 'image/svg+xml; charset=utf-8',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+      },
+    });
+  }
 
   // 2. Query options
   const theme = searchParams.get('theme');

@@ -20,19 +20,14 @@ export default function Home() {
   const [repo, setRepo] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  // Values for live SVG preview on the page
-  const previewUser = username.trim() || 'octocat';
-  const previewRepo = repo.trim() || 'GitGlyph';
-
   // Build query string. In self-hosted setups, omit username and repo unless explicitly typed
   const buildQuery = (isSnippet: boolean, extra: Record<string, string> = {}) => {
     const params = new URLSearchParams();
 
-    // If generating README snippet, only add username if explicitly typed as an override
-    if (isSnippet) {
-      if (username.trim()) params.set('username', username.trim());
-    } else {
-      if (previewUser) params.set('username', previewUser);
+    // Only add username if explicitly typed as an override
+    // Otherwise, the API routes automatically use the GITHUB_USERNAME environment variable!
+    if (username.trim()) {
+      params.set('username', username.trim());
     }
 
     if (theme && theme !== 'light') params.set('theme', theme);
@@ -40,10 +35,10 @@ export default function Home() {
     if (hideBorder) params.set('hide_border', 'true');
 
     for (const [k, v] of Object.entries(extra)) {
-      if (isSnippet) {
-        if (k === 'repo' && repo.trim()) params.set('repo', repo.trim());
-      } else {
-        if (v) params.set(k, v);
+      if (k === 'repo') {
+        if (repo.trim()) params.set('repo', repo.trim());
+      } else if (v) {
+        params.set(k, v);
       }
     }
 
@@ -103,7 +98,7 @@ export default function Home() {
       id: 'pin',
       title: 'Pinned Repository Card',
       desc: 'Showcases a specific public repository with description, language badge, stars, and forks.',
-      previewUrl: `/api/pin${buildQuery(false, { repo: previewRepo })}`,
+      previewUrl: `/api/pin${buildQuery(false, { repo: repo.trim() })}`,
       snippetUrl: `${readmeBaseUrl}/api/pin${buildQuery(true, { repo: repo.trim() })}`,
       width: 450,
       height: 140,
