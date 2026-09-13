@@ -50,7 +50,7 @@ const ICONS = {
 export function renderCard(stats: UserStats, options: RenderCardOptions = {}): string {
   const theme = getTheme(options);
   const layout = options.layout === 'vertical' ? 'vertical' : 'horizontal';
-  const title = escapeXml(options.customTitle || `${stats.name || stats.login}'s Public GitHub Stats`);
+  const title = escapeXml(options.customTitle || `${stats.name || stats.login}'s GitHub Stats`);
 
   if (layout === 'vertical') {
     const width = 320;
@@ -75,25 +75,25 @@ export function renderCard(stats: UserStats, options: RenderCardOptions = {}): s
 
   <g transform="translate(25, 100)">
     <svg class="icon" viewBox="0 0 16 16" width="16" height="16"><path d="${ICONS.commit}"/></svg>
-    <text x="25" y="12.5" class="stat-label">Public Commits:</text>
+    <text x="25" y="12.5" class="stat-label">Total Commits:</text>
     <text x="260" y="12.5" text-anchor="end" class="stat-value">${formatNumber(stats.totalCommits)}</text>
   </g>
 
   <g transform="translate(25, 135)">
     <svg class="icon" viewBox="0 0 16 16" width="16" height="16"><path d="${ICONS.pr}"/></svg>
-    <text x="25" y="12.5" class="stat-label">Public PRs:</text>
+    <text x="25" y="12.5" class="stat-label">Total PRs:</text>
     <text x="260" y="12.5" text-anchor="end" class="stat-value">${formatNumber(stats.totalPRs)}</text>
   </g>
 
   <g transform="translate(25, 170)">
     <svg class="icon" viewBox="0 0 16 16" width="16" height="16"><path d="${ICONS.issue}"/></svg>
-    <text x="25" y="12.5" class="stat-label">Public Issues:</text>
+    <text x="25" y="12.5" class="stat-label">Total Issues:</text>
     <text x="260" y="12.5" text-anchor="end" class="stat-value">${formatNumber(stats.totalIssues)}</text>
   </g>
 
   <g transform="translate(25, 205)">
     <svg class="icon" viewBox="0 0 16 16" width="16" height="16"><path d="${ICONS.repo}"/></svg>
-    <text x="25" y="12.5" class="stat-label">Public Repos:</text>
+    <text x="25" y="12.5" class="stat-label">Total Repos:</text>
     <text x="260" y="12.5" text-anchor="end" class="stat-value">${formatNumber(stats.publicRepos)}</text>
   </g>
 
@@ -131,26 +131,26 @@ export function renderCard(stats: UserStats, options: RenderCardOptions = {}): s
 
   <g transform="translate(25, 95)">
     <svg class="icon" viewBox="0 0 16 16" width="16" height="16"><path d="${ICONS.commit}"/></svg>
-    <text x="25" y="12.5" class="stat-label">Public Commits:</text>
+    <text x="25" y="12.5" class="stat-label">Total Commits:</text>
     <text x="175" y="12.5" class="stat-value">${formatNumber(stats.totalCommits)}</text>
   </g>
 
   <g transform="translate(25, 130)">
     <svg class="icon" viewBox="0 0 16 16" width="16" height="16"><path d="${ICONS.pr}"/></svg>
-    <text x="25" y="12.5" class="stat-label">Public PRs:</text>
+    <text x="25" y="12.5" class="stat-label">Total PRs:</text>
     <text x="175" y="12.5" class="stat-value">${formatNumber(stats.totalPRs)}</text>
   </g>
 
   <!-- Right Column -->
   <g transform="translate(245, 60)">
     <svg class="icon" viewBox="0 0 16 16" width="16" height="16"><path d="${ICONS.issue}"/></svg>
-    <text x="25" y="12.5" class="stat-label">Public Issues:</text>
+    <text x="25" y="12.5" class="stat-label">Total Issues:</text>
     <text x="160" y="12.5" class="stat-value">${formatNumber(stats.totalIssues)}</text>
   </g>
 
   <g transform="translate(245, 95)">
     <svg class="icon" viewBox="0 0 16 16" width="16" height="16"><path d="${ICONS.repo}"/></svg>
-    <text x="25" y="12.5" class="stat-label">Public Repos:</text>
+    <text x="25" y="12.5" class="stat-label">Total Repos:</text>
     <text x="160" y="12.5" class="stat-value">${formatNumber(stats.publicRepos)}</text>
   </g>
 
@@ -171,7 +171,7 @@ export function renderErrorCard(message: string): string {
     .sub { font: 400 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: #57606a; }
   </style>
   <rect x="0.5" y="0.5" width="449" height="119" rx="10" fill="#ffffff" stroke="#ff8182"/>
-  <text x="25" y="45" class="title">Unable to fetch Public GitHub Stats</text>
+  <text x="25" y="45" class="title">Unable to fetch GitHub Stats</text>
   <text x="25" y="75" class="sub">${escapeXml(message)}</text>
 </svg>
   `.trim();

@@ -82,8 +82,8 @@ export default function Home() {
   const cards = [
     {
       id: 'stats',
-      title: 'Public Stats Card',
-      desc: 'Showcases open-source stars, public commits, PRs, issues, repos, and followers.',
+      title: 'GitHub Stats Card',
+      desc: 'Showcases open-source stars, total commits, PRs, issues, repos, and followers.',
       previewUrl: `/api/stats${buildQuery(false)}`,
       snippetUrl: `${readmeBaseUrl}/api/stats${buildQuery(true)}`,
       width: layout === 'vertical' ? 320 : 450,
@@ -91,7 +91,7 @@ export default function Home() {
     },
     {
       id: 'streak',
-      title: 'Public Contribution Streak',
+      title: 'Contribution Streak Card',
       desc: 'Visualizes current contribution streak, all-time max streak, and total year contributions.',
       previewUrl: `/api/streak${buildQuery(false)}`,
       snippetUrl: `${readmeBaseUrl}/api/streak${buildQuery(true)}`,
@@ -160,8 +160,9 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <header className="max-w-6xl mx-auto px-6 pt-16 pb-12 text-center">
+      <main>
+        {/* Hero Section */}
+        <header className="max-w-6xl mx-auto px-6 pt-16 pb-12 text-center">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 mb-6">
           <span>🛡️ Self-Hosted &amp; Forkable</span>
           <span>•</span>
@@ -456,10 +457,11 @@ export default function Home() {
           </div>
         </div>
       </section>
+      </main>
 
       {/* Footer */}
       <footer className="w-full border-t border-zinc-200 dark:border-zinc-800 py-8 text-center text-xs text-zinc-500">
-        GitGlyph · Self-Hosted Dynamic Public GitHub Stats · Built with Next.js &amp; Vercel Edge CDN
+        GitGlyph · Self-Hosted Dynamic GitHub Stats · Built with Next.js &amp; Vercel Edge CDN
       </footer>
     </div>
   );

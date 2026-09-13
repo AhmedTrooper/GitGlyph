@@ -45,7 +45,7 @@ export function renderStreakCard(stats: StreakStats, options: RenderStreakOption
   const theme = getTheme(options);
   const layout = options.layout === 'vertical' ? 'vertical' : 'horizontal';
   const displayName = escapeXml(stats.name || stats.login);
-  const title = escapeXml(options.customTitle || `${displayName}'s Public Contribution Streak`);
+  const title = escapeXml(options.customTitle || `${displayName}'s Contribution Streak`);
 
   if (layout === 'vertical') {
     const width = 320;
@@ -63,9 +63,9 @@ export function renderStreakCard(stats: StreakStats, options: RenderStreakOption
   <rect x="0.5" y="0.5" width="${width - 1}" height="${height - 1}" rx="10" fill="${theme.bg}" stroke="${theme.border}"/>
   <text x="25" y="32" class="title">${title}</text>
 
-  <!-- Row 1: Public Contribs -->
+  <!-- Row 1: Total Contributions -->
   <g transform="translate(25, 55)">
-    <text x="0" y="16" class="label">Public Contribs (Past Year)</text>
+    <text x="0" y="16" class="label">Total Contributions (Past Year)</text>
     <text x="0" y="42" class="value">${stats.totalContributions.toLocaleString()}</text>
   </g>
 
@@ -109,7 +109,7 @@ export function renderStreakCard(stats: StreakStats, options: RenderStreakOption
 
   <!-- Column 1: Total Contributions -->
   <g transform="translate(25, 65)">
-    <text x="50" y="20" text-anchor="middle" class="label">Public Contribs</text>
+    <text x="50" y="20" text-anchor="middle" class="label">Total Contributions</text>
     <text x="50" y="55" text-anchor="middle" class="value">${stats.totalContributions.toLocaleString()}</text>
     <text x="50" y="80" text-anchor="middle" class="range">Past Year</text>
   </g>

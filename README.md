@@ -9,17 +9,17 @@
 
 All cards can be embedded in any GitHub profile README or repository Markdown with clean URLs:
 
-### 1. Public GitHub Stats Card
+### 1. GitHub Stats Card
 ```markdown
-![Public Stats Card](https://git-glyph.vercel.app/api/stats?theme=tokyo-night)
+![GitHub Stats Card](https://git-glyph.vercel.app/api/stats?theme=tokyo-night)
 ```
-![Public Stats Card](https://git-glyph.vercel.app/api/stats?theme=tokyo-night)
+![GitHub Stats Card](https://git-glyph.vercel.app/api/stats?theme=tokyo-night)
 
-### 2. Public Contribution Streak Card
+### 2. Contribution Streak Card
 ```markdown
-![Public Contribution Streak](https://git-glyph.vercel.app/api/streak?theme=tokyo-night)
+![Contribution Streak](https://git-glyph.vercel.app/api/streak?theme=tokyo-night)
 ```
-![Public Contribution Streak](https://git-glyph.vercel.app/api/streak?theme=tokyo-night)
+![Contribution Streak](https://git-glyph.vercel.app/api/streak?theme=tokyo-night)
 
 ### 3. Top Languages Card
 ```markdown
