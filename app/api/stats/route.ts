@@ -5,22 +5,11 @@ import { renderCard, renderErrorCard, CardLayout } from '@/lib/renderCard';
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
 
-  // 1. Resolve username: query param -> GITHUB_USERNAME env var
+  // 1. Resolve username: query param -> GITHUB_USERNAME env var -> fallback 'octocat'
   const username =
     searchParams.get('username')?.trim() ||
     process.env.GITHUB_USERNAME?.trim() ||
-    '';
-
-  if (!username) {
-    const errorSvg = renderErrorCard('Missing username. Set GITHUB_USERNAME in environment or pass ?username=');
-    return new NextResponse(errorSvg, {
-      status: 200,
-      headers: {
-        'Content-Type': 'image/svg+xml; charset=utf-8',
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-      },
-    });
-  }
+    'octocat';
 
   // 2. Query options
   const theme = searchParams.get('theme');

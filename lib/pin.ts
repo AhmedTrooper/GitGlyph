@@ -69,9 +69,11 @@ export async function fetchRepoDetails(repoInput: string, defaultOwner?: string)
     'Content-Type': 'application/json',
   };
 
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+  if (!token) {
+    throw new Error('GITHUB_TOKEN is required for repository details. Please add GITHUB_TOKEN in your environment variables.');
   }
+
+  headers['Authorization'] = `Bearer ${token}`;
 
   const res = await fetch('https://api.github.com/graphql', {
     method: 'POST',

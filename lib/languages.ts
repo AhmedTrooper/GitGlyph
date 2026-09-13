@@ -63,9 +63,11 @@ export async function fetchUserLanguages(username: string): Promise<UserLanguage
     'Content-Type': 'application/json',
   };
 
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+  if (!token) {
+    throw new Error('GITHUB_TOKEN is required for language statistics. Please add GITHUB_TOKEN in your environment variables.');
   }
+
+  headers['Authorization'] = `Bearer ${token}`;
 
   const res = await fetch('https://api.github.com/graphql', {
     method: 'POST',
