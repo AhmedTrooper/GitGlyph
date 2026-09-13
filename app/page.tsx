@@ -18,9 +18,9 @@ export default async function Home(props: {
       <img
         src={imgSrc}
         alt="GitHub Stats"
-        width={400}
-        height={150}
-        className="rounded-lg shadow-md"
+        width={450}
+        height={195}
+        className="rounded-lg shadow-md max-w-full h-auto"
       />
     </main>
   );
