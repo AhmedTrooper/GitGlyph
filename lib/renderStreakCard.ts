@@ -102,7 +102,7 @@ export function renderStreakCard(stats: StreakStats, themeName: CardTheme = 'lig
   <rect x="0.5" y="0.5" width="449" height="194" rx="10" fill="${theme.bg}" stroke="${theme.border}"/>
 
   <!-- Title -->
-  <text x="25" y="35" class="title">${displayName}'s Contribution Streak</text>
+  <text x="25" y="35" class="title">${displayName}'s Public Contribution Streak</text>
 
   <!-- Divider lines -->
   <line x1="150" y1="55" x2="150" y2="165" stroke="${theme.border}" stroke-width="1"/>
@@ -110,7 +110,7 @@ export function renderStreakCard(stats: StreakStats, themeName: CardTheme = 'lig
 
   <!-- Column 1: Total Contributions -->
   <g transform="translate(25, 65)">
-    <text x="50" y="20" text-anchor="middle" class="label">Total</text>
+    <text x="50" y="20" text-anchor="middle" class="label">Public Contribs</text>
     <text x="50" y="55" text-anchor="middle" class="value">${stats.totalContributions.toLocaleString()}</text>
     <text x="50" y="80" text-anchor="middle" class="range">Past Year</text>
   </g>
@@ -128,7 +128,7 @@ export function renderStreakCard(stats: StreakStats, themeName: CardTheme = 'lig
 
   <!-- Column 3: Longest Streak -->
   <g transform="translate(325, 65)">
-    <text x="50" y="20" text-anchor="middle" class="label">Longest Streak</text>
+    <text x="50" y="20" text-anchor="middle" class="label">Max Streak</text>
     <text x="50" y="55" text-anchor="middle" class="value">${stats.longestStreak} ${stats.longestStreak === 1 ? 'day' : 'days'}</text>
     <text x="50" y="80" text-anchor="middle" class="range">${formatDateRange(stats.longestStreakStart, stats.longestStreakEnd)}</text>
   </g>

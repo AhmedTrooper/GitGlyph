@@ -111,7 +111,7 @@ export function renderCard(stats: UserStats, themeName: CardTheme = 'light'): st
     <svg class="icon" viewBox="0 0 16 16" width="16" height="16">
       <path d="${ICONS.star}"/>
     </svg>
-    <text x="25" y="12.5" class="stat-label">Total Stars Earned:</text>
+    <text x="25" y="12.5" class="stat-label">Stars Earned:</text>
     <text x="175" y="12.5" class="stat-value">${formatNumber(stats.totalStars)}</text>
   </g>
 
@@ -120,7 +120,7 @@ export function renderCard(stats: UserStats, themeName: CardTheme = 'light'): st
     <svg class="icon" viewBox="0 0 16 16" width="16" height="16">
       <path d="${ICONS.commit}"/>
     </svg>
-    <text x="25" y="12.5" class="stat-label">Total Commits:</text>
+    <text x="25" y="12.5" class="stat-label">Public Commits:</text>
     <text x="175" y="12.5" class="stat-value">${formatNumber(stats.totalCommits)}</text>
   </g>
 
@@ -129,7 +129,7 @@ export function renderCard(stats: UserStats, themeName: CardTheme = 'light'): st
     <svg class="icon" viewBox="0 0 16 16" width="16" height="16">
       <path d="${ICONS.pr}"/>
     </svg>
-    <text x="25" y="12.5" class="stat-label">Total PRs:</text>
+    <text x="25" y="12.5" class="stat-label">Public PRs:</text>
     <text x="175" y="12.5" class="stat-value">${formatNumber(stats.totalPRs)}</text>
   </g>
 
@@ -139,7 +139,7 @@ export function renderCard(stats: UserStats, themeName: CardTheme = 'light'): st
     <svg class="icon" viewBox="0 0 16 16" width="16" height="16">
       <path d="${ICONS.issue}"/>
     </svg>
-    <text x="25" y="12.5" class="stat-label">Total Issues:</text>
+    <text x="25" y="12.5" class="stat-label">Public Issues:</text>
     <text x="160" y="12.5" class="stat-value">${formatNumber(stats.totalIssues)}</text>
   </g>
 
