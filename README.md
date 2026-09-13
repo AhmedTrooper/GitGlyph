@@ -82,6 +82,9 @@ All cards support themes, compact vertical layouts, and border toggles:
 | `username` | `string` | `GITHUB_USERNAME` env | Optional username override. |
 | `custom_title`| `string` | Auto-generated | Custom header text for the card. |
 | `bg_color` | `hex` | Theme default | Custom hex color code (without `#`) for background override. |
+| `border_color`| `hex` | Theme default | Custom hex color code (without `#`) for card border stroke. |
+| `title_color` | `hex` | Theme default | Custom hex color code (without `#`) for header title text. |
+| `text_color`  | `hex` | Theme default | Custom hex color code (without `#`) for body text and metric values. |
 
 ---
 
