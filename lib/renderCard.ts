@@ -50,7 +50,7 @@ const ICONS = {
 export function renderCard(stats: UserStats, options: RenderCardOptions = {}): string {
   const theme = getTheme(options);
   const layout = options.layout === 'vertical' ? 'vertical' : 'horizontal';
-  const title = escapeXml(options.customTitle || `${stats.name || stats.login}'s GitHub Stats`);
+  const title = escapeXml(options.customTitle || `${stats.name || stats.login}'s Public GitHub Stats`);
 
   if (layout === 'vertical') {
     const width = 320;
