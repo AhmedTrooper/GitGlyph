@@ -5,6 +5,7 @@ export default async function Home(props: {
   const username = typeof searchParams.username === 'string' ? searchParams.username : '';
   const theme = typeof searchParams.theme === 'string' ? searchParams.theme : '';
   const card = typeof searchParams.card === 'string' ? searchParams.card : '';
+  const repo = typeof searchParams.repo === 'string' ? searchParams.repo : (process.env.GITHUB_REPO || '');
 
   const params = new URLSearchParams();
   if (username) params.set('username', username);
@@ -12,10 +13,17 @@ export default async function Home(props: {
 
   const query = params.toString() ? `?${params.toString()}` : '';
 
+  const pinParams = new URLSearchParams(params);
+  if (repo) pinParams.set('repo', repo);
+  const pinQuery = pinParams.toString() ? `?${pinParams.toString()}` : '';
+
   const cards = [
-    { id: 'stats', label: 'Public Stats', path: `/api/stats${query}` },
-    { id: 'streak', label: 'Public Streak', path: `/api/streak${query}` },
-    { id: 'languages', label: 'Top Languages', path: `/api/languages${query}` },
+    { id: 'stats', label: 'Public Stats', path: `/api/stats${query}`, width: 450, height: 195 },
+    { id: 'streak', label: 'Public Streak', path: `/api/streak${query}`, width: 450, height: 195 },
+    { id: 'languages', label: 'Top Languages', path: `/api/languages${query}`, width: 450, height: 195 },
+    ...(repo || card === 'pin'
+      ? [{ id: 'pin', label: 'Pinned Repository', path: `/api/pin${pinQuery}`, width: 450, height: 140 }]
+      : []),
   ];
 
   const visibleCards = card ? cards.filter((c) => c.id === card) : cards;
@@ -28,8 +36,8 @@ export default async function Home(props: {
           <img
             src={item.path}
             alt={item.label}
-            width={450}
-            height={195}
+            width={item.width}
+            height={item.height}
             className="rounded-lg shadow-md max-w-full h-auto"
           />
           <a
