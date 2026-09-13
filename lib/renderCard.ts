@@ -1,50 +1,12 @@
 import { UserStats } from './github';
+import { getTheme, CustomThemeOptions } from './themes';
 
-export type CardTheme = 'light' | 'dark' | 'tokyo-night' | 'dracula';
+export type CardLayout = 'horizontal' | 'vertical';
 
-interface ThemeColors {
-  bg: string;
-  border: string;
-  title: string;
-  text: string;
-  icon: string;
-  statBold: string;
+export interface RenderCardOptions extends CustomThemeOptions {
+  layout?: CardLayout;
+  customTitle?: string | null;
 }
-
-const THEMES: Record<CardTheme, ThemeColors> = {
-  light: {
-    bg: '#ffffff',
-    border: '#e1e4e8',
-    title: '#0969da',
-    text: '#57606a',
-    icon: '#57606a',
-    statBold: '#24292f',
-  },
-  dark: {
-    bg: '#0d1117',
-    border: '#30363d',
-    title: '#58a6ff',
-    text: '#8b949e',
-    icon: '#8b949e',
-    statBold: '#c9d1d9',
-  },
-  'tokyo-night': {
-    bg: '#1a1b26',
-    border: '#414868',
-    title: '#7aa2f7',
-    text: '#9aa5ce',
-    icon: '#7aa2f7',
-    statBold: '#cfc9c2',
-  },
-  dracula: {
-    bg: '#282a36',
-    border: '#6272a4',
-    title: '#bd93f9',
-    text: '#bfbfbf',
-    icon: '#ff79c6',
-    statBold: '#f8f8f2',
-  },
-};
 
 function escapeXml(unsafe: string | number | null | undefined): string {
   if (unsafe == null) return '';
@@ -76,7 +38,6 @@ function formatNumber(num: number): string {
   return num.toLocaleString('en-US');
 }
 
-// Crisp inline SVG vector paths
 const ICONS = {
   star: 'M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z',
   commit: 'M11.93 8.5a4.002 4.002 0 0 1-7.86 0H.75a.75.75 0 0 1 0-1.5h3.32a4.002 4.002 0 0 1 7.86 0h3.32a.75.75 0 0 1 0 1.5Zm-1.43-.75a2.5 2.5 0 1 0-5 0 2.5 2.5 0 0 0 5 0Z',
@@ -86,16 +47,72 @@ const ICONS = {
   followers: 'M2 5.5a3.5 3.5 0 1 1 5.898 2.549 5.508 5.508 0 0 1 3.034 4.084.75.75 0 1 1-1.482.235 4.002 4.002 0 0 0-7.899 0 .75.75 0 0 1-1.483-.235 5.508 5.508 0 0 1 3.034-4.084A3.486 3.486 0 0 1 2 5.5ZM5.5 3.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm5.25.5a.75.75 0 0 1 .75.75 2.75 2.75 0 0 1 0 5.5.75.75 0 0 1 0-1.5 1.25 1.25 0 0 0 0-2.5.75.75 0 0 1-.75-.75Zm1.71 8.283a.75.75 0 1 1 .58-1.383 3.513 3.513 0 0 1 2.21 3.35.75.75 0 0 1-1.5 0 2.012 2.012 0 0 0-1.29-1.967Z',
 };
 
-export function renderCard(stats: UserStats, themeName: CardTheme = 'light'): string {
-  const theme = THEMES[themeName] || THEMES.light;
-  const title = `${escapeXml(stats.name || stats.login)}'s GitHub Stats`;
+export function renderCard(stats: UserStats, options: RenderCardOptions = {}): string {
+  const theme = getTheme(options);
+  const layout = options.layout === 'vertical' ? 'vertical' : 'horizontal';
+  const title = escapeXml(options.customTitle || `${stats.name || stats.login}'s GitHub Stats`);
 
+  if (layout === 'vertical') {
+    const width = 320;
+    const height = 285;
+    return `
+<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .title { font: 600 16px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: ${theme.title}; }
+    .stat-label { font: 400 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: ${theme.text}; }
+    .stat-value { font: 700 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: ${theme.bold}; }
+    .icon { fill: ${theme.icon}; }
+  </style>
+
+  <rect x="0.5" y="0.5" width="${width - 1}" height="${height - 1}" rx="10" fill="${theme.bg}" stroke="${theme.border}"/>
+  <text x="25" y="35" class="title">${title}</text>
+
+  <g transform="translate(25, 65)">
+    <svg class="icon" viewBox="0 0 16 16" width="16" height="16"><path d="${ICONS.star}"/></svg>
+    <text x="25" y="12.5" class="stat-label">Stars Earned:</text>
+    <text x="260" y="12.5" text-anchor="end" class="stat-value">${formatNumber(stats.totalStars)}</text>
+  </g>
+
+  <g transform="translate(25, 100)">
+    <svg class="icon" viewBox="0 0 16 16" width="16" height="16"><path d="${ICONS.commit}"/></svg>
+    <text x="25" y="12.5" class="stat-label">Public Commits:</text>
+    <text x="260" y="12.5" text-anchor="end" class="stat-value">${formatNumber(stats.totalCommits)}</text>
+  </g>
+
+  <g transform="translate(25, 135)">
+    <svg class="icon" viewBox="0 0 16 16" width="16" height="16"><path d="${ICONS.pr}"/></svg>
+    <text x="25" y="12.5" class="stat-label">Public PRs:</text>
+    <text x="260" y="12.5" text-anchor="end" class="stat-value">${formatNumber(stats.totalPRs)}</text>
+  </g>
+
+  <g transform="translate(25, 170)">
+    <svg class="icon" viewBox="0 0 16 16" width="16" height="16"><path d="${ICONS.issue}"/></svg>
+    <text x="25" y="12.5" class="stat-label">Public Issues:</text>
+    <text x="260" y="12.5" text-anchor="end" class="stat-value">${formatNumber(stats.totalIssues)}</text>
+  </g>
+
+  <g transform="translate(25, 205)">
+    <svg class="icon" viewBox="0 0 16 16" width="16" height="16"><path d="${ICONS.repo}"/></svg>
+    <text x="25" y="12.5" class="stat-label">Public Repos:</text>
+    <text x="260" y="12.5" text-anchor="end" class="stat-value">${formatNumber(stats.publicRepos)}</text>
+  </g>
+
+  <g transform="translate(25, 240)">
+    <svg class="icon" viewBox="0 0 16 16" width="16" height="16"><path d="${ICONS.followers}"/></svg>
+    <text x="25" y="12.5" class="stat-label">Followers:</text>
+    <text x="260" y="12.5" text-anchor="end" class="stat-value">${formatNumber(stats.followers)}</text>
+  </g>
+</svg>
+    `.trim();
+  }
+
+  // Horizontal layout (default)
   return `
 <svg width="450" height="195" viewBox="0 0 450 195" fill="none" xmlns="http://www.w3.org/2000/svg">
   <style>
-    .title { font: 600 17px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; fill: ${theme.title}; }
-    .stat-label { font: 400 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; fill: ${theme.text}; }
-    .stat-value { font: 700 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; fill: ${theme.statBold}; }
+    .title { font: 600 17px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: ${theme.title}; }
+    .stat-label { font: 400 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: ${theme.text}; }
+    .stat-value { font: 700 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: ${theme.bold}; }
     .icon { fill: ${theme.icon}; }
   </style>
 
@@ -106,57 +123,39 @@ export function renderCard(stats: UserStats, themeName: CardTheme = 'light'): st
   <text x="25" y="35" class="title">${title}</text>
 
   <!-- Left Column -->
-  <!-- Stars -->
   <g transform="translate(25, 60)">
-    <svg class="icon" viewBox="0 0 16 16" width="16" height="16">
-      <path d="${ICONS.star}"/>
-    </svg>
+    <svg class="icon" viewBox="0 0 16 16" width="16" height="16"><path d="${ICONS.star}"/></svg>
     <text x="25" y="12.5" class="stat-label">Stars Earned:</text>
     <text x="175" y="12.5" class="stat-value">${formatNumber(stats.totalStars)}</text>
   </g>
 
-  <!-- Commits -->
   <g transform="translate(25, 95)">
-    <svg class="icon" viewBox="0 0 16 16" width="16" height="16">
-      <path d="${ICONS.commit}"/>
-    </svg>
+    <svg class="icon" viewBox="0 0 16 16" width="16" height="16"><path d="${ICONS.commit}"/></svg>
     <text x="25" y="12.5" class="stat-label">Public Commits:</text>
     <text x="175" y="12.5" class="stat-value">${formatNumber(stats.totalCommits)}</text>
   </g>
 
-  <!-- Pull Requests -->
   <g transform="translate(25, 130)">
-    <svg class="icon" viewBox="0 0 16 16" width="16" height="16">
-      <path d="${ICONS.pr}"/>
-    </svg>
+    <svg class="icon" viewBox="0 0 16 16" width="16" height="16"><path d="${ICONS.pr}"/></svg>
     <text x="25" y="12.5" class="stat-label">Public PRs:</text>
     <text x="175" y="12.5" class="stat-value">${formatNumber(stats.totalPRs)}</text>
   </g>
 
   <!-- Right Column -->
-  <!-- Issues -->
   <g transform="translate(245, 60)">
-    <svg class="icon" viewBox="0 0 16 16" width="16" height="16">
-      <path d="${ICONS.issue}"/>
-    </svg>
+    <svg class="icon" viewBox="0 0 16 16" width="16" height="16"><path d="${ICONS.issue}"/></svg>
     <text x="25" y="12.5" class="stat-label">Public Issues:</text>
     <text x="160" y="12.5" class="stat-value">${formatNumber(stats.totalIssues)}</text>
   </g>
 
-  <!-- Repos -->
   <g transform="translate(245, 95)">
-    <svg class="icon" viewBox="0 0 16 16" width="16" height="16">
-      <path d="${ICONS.repo}"/>
-    </svg>
+    <svg class="icon" viewBox="0 0 16 16" width="16" height="16"><path d="${ICONS.repo}"/></svg>
     <text x="25" y="12.5" class="stat-label">Public Repos:</text>
     <text x="160" y="12.5" class="stat-value">${formatNumber(stats.publicRepos)}</text>
   </g>
 
-  <!-- Followers -->
   <g transform="translate(245, 130)">
-    <svg class="icon" viewBox="0 0 16 16" width="16" height="16">
-      <path d="${ICONS.followers}"/>
-    </svg>
+    <svg class="icon" viewBox="0 0 16 16" width="16" height="16"><path d="${ICONS.followers}"/></svg>
     <text x="25" y="12.5" class="stat-label">Followers:</text>
     <text x="160" y="12.5" class="stat-value">${formatNumber(stats.followers)}</text>
   </g>

@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import { fetchRepoDetails } from '@/lib/pin';
 import { renderRepoCard } from '@/lib/renderRepoCard';
-import { renderErrorCard, CardTheme } from '@/lib/renderCard';
+import { renderErrorCard } from '@/lib/renderCard';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
 
-  // 1. Resolve repo: query param ?repo= -> GITHUB_REPO env var
+  // 1. Resolve repo
   const repo =
     searchParams.get('repo')?.trim() ||
     process.env.GITHUB_REPO?.trim() ||
@@ -17,12 +17,14 @@ export async function GET(request: Request) {
     process.env.GITHUB_USERNAME?.trim() ||
     '';
 
-  // 2. Resolve theme
-  const themeParam = (searchParams.get('theme') || 'light').toLowerCase();
-  const validThemes: CardTheme[] = ['light', 'dark', 'tokyo-night', 'dracula'];
-  const theme: CardTheme = validThemes.includes(themeParam as CardTheme)
-    ? (themeParam as CardTheme)
-    : 'light';
+  // 2. Query options
+  const theme = searchParams.get('theme');
+  const hideBorder = searchParams.get('hide_border') === 'true';
+  const customTitle = searchParams.get('custom_title');
+  const bg = searchParams.get('bg_color');
+  const border = searchParams.get('border_color');
+  const titleColor = searchParams.get('title_color');
+  const text = searchParams.get('text_color');
 
   if (!repo) {
     const errorSvg = renderErrorCard('Missing repo parameter. Specify ?repo=repo-name or set GITHUB_REPO.');
@@ -37,7 +39,15 @@ export async function GET(request: Request) {
 
   try {
     const repoDetails = await fetchRepoDetails(repo, defaultOwner);
-    const svg = renderRepoCard(repoDetails, theme);
+    const svg = renderRepoCard(repoDetails, {
+      theme,
+      hideBorder,
+      customTitle,
+      bg,
+      border,
+      title: titleColor,
+      text,
+    });
 
     // 3. Return SVG with Vercel Edge CDN cache headers (5 hours = 18000s)
     return new NextResponse(svg, {

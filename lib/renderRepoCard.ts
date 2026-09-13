@@ -1,54 +1,9 @@
 import { RepoDetails } from './pin';
-import { CardTheme } from './renderCard';
+import { getTheme, CustomThemeOptions } from './themes';
 
-interface ThemeColors {
-  bg: string;
-  border: string;
-  title: string;
-  text: string;
-  badgeBg: string;
-  badgeText: string;
-  bold: string;
+export interface RenderRepoOptions extends CustomThemeOptions {
+  customTitle?: string | null;
 }
-
-const THEMES: Record<CardTheme, ThemeColors> = {
-  light: {
-    bg: '#ffffff',
-    border: '#e1e4e8',
-    title: '#0969da',
-    text: '#57606a',
-    badgeBg: '#f6f8fa',
-    badgeText: '#57606a',
-    bold: '#24292f',
-  },
-  dark: {
-    bg: '#0d1117',
-    border: '#30363d',
-    title: '#58a6ff',
-    text: '#8b949e',
-    badgeBg: '#161b22',
-    badgeText: '#8b949e',
-    bold: '#c9d1d9',
-  },
-  'tokyo-night': {
-    bg: '#1a1b26',
-    border: '#414868',
-    title: '#7aa2f7',
-    text: '#9aa5ce',
-    badgeBg: '#24283b',
-    badgeText: '#7aa2f7',
-    bold: '#cfc9c2',
-  },
-  dracula: {
-    bg: '#282a36',
-    border: '#6272a4',
-    title: '#bd93f9',
-    text: '#bfbfbf',
-    badgeBg: '#44475a',
-    badgeText: '#f8f8f2',
-    bold: '#f8f8f2',
-  },
-};
 
 function escapeXml(unsafe: string | number | null | undefined): string {
   if (unsafe == null) return '';
@@ -88,10 +43,11 @@ const ICONS = {
   fork: 'M5 3.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm0 2.122a2.25 2.25 0 1 0-1.5 0v.878A2.25 2.25 0 0 0 5.75 8.5h4.5A2.25 2.25 0 0 0 12.5 6.25v-.878a2.25 2.25 0 1 0-1.5 0v.878a.75.75 0 0 1-.75.75h-4.5A.75.75 0 0 1 5 6.25v-.878Zm6.75-2.122a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM8 12.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM9.5 12.75a2.25 2.25 0 1 0-2.25 2.25.75.75 0 0 0 .75-.75v-2.25h.75a.75.75 0 0 0 .75-.75Z',
 };
 
-export function renderRepoCard(repo: RepoDetails, themeName: CardTheme = 'light'): string {
-  const theme = THEMES[themeName] || THEMES.light;
+export function renderRepoCard(repo: RepoDetails, options: RenderRepoOptions = {}): string {
+  const theme = getTheme(options);
   const description = escapeXml(truncateText(repo.description, 85));
   const badgeLabel = repo.isFork ? 'Fork' : 'Public';
+  const title = escapeXml(options.customTitle || repo.name);
 
   return `
 <svg width="450" height="140" viewBox="0 0 450 140" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -103,35 +59,28 @@ export function renderRepoCard(repo: RepoDetails, themeName: CardTheme = 'light'
     .icon { fill: ${theme.text}; }
   </style>
 
-  <!-- Background -->
   <rect x="0.5" y="0.5" width="449" height="139" rx="10" fill="${theme.bg}" stroke="${theme.border}"/>
 
-  <!-- Repo Header -->
   <g transform="translate(25, 25)">
     <svg class="icon" viewBox="0 0 16 16" width="16" height="16" y="2">
       <path d="${ICONS.repo}"/>
     </svg>
-    <text x="24" y="15" class="repo-title">${escapeXml(repo.name)}</text>
+    <text x="24" y="15" class="repo-title">${title}</text>
     
-    <!-- Public/Fork Pill Badge -->
     <g transform="translate(335, 0)">
       <rect width="55" height="18" rx="9" fill="${theme.badgeBg}" stroke="${theme.border}"/>
       <text x="27.5" y="12.5" text-anchor="middle" class="badge">${badgeLabel}</text>
     </g>
   </g>
 
-  <!-- Description -->
   <text x="25" y="68" class="description">${description}</text>
 
-  <!-- Footer Meta (Language, Stars, Forks) -->
   <g transform="translate(25, 105)">
-    <!-- Primary Language -->
     <g>
       <circle cx="5" cy="5" r="5" fill="${repo.languageColor}"/>
       <text x="16" y="9" class="meta-text">${escapeXml(repo.language)}</text>
     </g>
 
-    <!-- Stars -->
     <g transform="translate(130, 0)">
       <svg class="icon" viewBox="0 0 16 16" width="14" height="14" y="-1">
         <path d="${ICONS.star}"/>
@@ -139,7 +88,6 @@ export function renderRepoCard(repo: RepoDetails, themeName: CardTheme = 'light'
       <text x="18" y="9" class="meta-text">${formatNumber(repo.stars)}</text>
     </g>
 
-    <!-- Forks -->
     <g transform="translate(210, 0)">
       <svg class="icon" viewBox="0 0 16 16" width="14" height="14" y="-1">
         <path d="${ICONS.fork}"/>

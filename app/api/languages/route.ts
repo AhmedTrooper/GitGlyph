@@ -1,27 +1,37 @@
 import { NextResponse } from 'next/server';
 import { fetchUserLanguages } from '@/lib/languages';
 import { renderLanguagesCard } from '@/lib/renderLanguagesCard';
-import { renderErrorCard, CardTheme } from '@/lib/renderCard';
+import { renderErrorCard } from '@/lib/renderCard';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
 
-  // 1. Resolve username: query param -> GITHUB_USERNAME env var -> fallback 'octocat'
+  // 1. Resolve username
   const username =
     searchParams.get('username')?.trim() ||
     process.env.GITHUB_USERNAME?.trim() ||
     'octocat';
 
-  // 2. Resolve theme
-  const themeParam = (searchParams.get('theme') || 'light').toLowerCase();
-  const validThemes: CardTheme[] = ['light', 'dark', 'tokyo-night', 'dracula'];
-  const theme: CardTheme = validThemes.includes(themeParam as CardTheme)
-    ? (themeParam as CardTheme)
-    : 'light';
+  // 2. Query options
+  const theme = searchParams.get('theme');
+  const hideBorder = searchParams.get('hide_border') === 'true';
+  const customTitle = searchParams.get('custom_title');
+  const bg = searchParams.get('bg_color');
+  const border = searchParams.get('border_color');
+  const titleColor = searchParams.get('title_color');
+  const text = searchParams.get('text_color');
 
   try {
     const userLangs = await fetchUserLanguages(username);
-    const svg = renderLanguagesCard(userLangs, theme);
+    const svg = renderLanguagesCard(userLangs, {
+      theme,
+      hideBorder,
+      customTitle,
+      bg,
+      border,
+      title: titleColor,
+      text,
+    });
 
     // 3. Return SVG with Vercel Edge CDN cache headers (5 hours = 18000s)
     return new NextResponse(svg, {
