@@ -13,19 +13,24 @@ const THEMES = [
 ];
 
 export default function Home() {
-  const [username, setUsername] = useState('AhmedTrooper');
+  const [username, setUsername] = useState('');
   const [theme, setTheme] = useState('dark');
   const [layout, setLayout] = useState<'horizontal' | 'vertical'>('horizontal');
   const [hideBorder, setHideBorder] = useState(false);
-  const [repo, setRepo] = useState('GitGlyph');
+  const [repo, setRepo] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const activeUser = username.trim() || 'octocat';
-  const activeRepo = repo.trim() || 'GitGlyph';
+  // Values for live SVG preview on the page
+  const previewUser = username.trim() || 'octocat';
+  const previewRepo = repo.trim() || 'GitGlyph';
 
-  const buildQuery = (extra: Record<string, string> = {}) => {
+  // Values for README copy snippet
+  const snippetUser = username.trim() || 'YOUR_USERNAME';
+  const snippetRepo = repo.trim() || 'YOUR_REPO';
+
+  const buildQuery = (user: string, extra: Record<string, string> = {}) => {
     const params = new URLSearchParams();
-    if (activeUser) params.set('username', activeUser);
+    if (user) params.set('username', user);
     if (theme && theme !== 'light') params.set('theme', theme);
     if (layout === 'vertical') params.set('layout', 'vertical');
     if (hideBorder) params.set('hide_border', 'true');
@@ -47,49 +52,52 @@ export default function Home() {
     }
   };
 
-  const statsUrl = `/api/stats${buildQuery()}`;
-  const streakUrl = `/api/streak${buildQuery()}`;
-  const languagesUrl = `/api/languages${buildQuery()}`;
-  const pinUrl = `/api/pin${buildQuery({ repo: activeRepo })}`;
+  // Safe base URL for README snippets: Never output localhost in README markdown
+  const isLocalhost =
+    typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
-  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://gitglyph.vercel.app';
+  const readmeBaseUrl =
+    typeof window !== 'undefined' && !isLocalhost
+      ? window.location.origin
+      : 'https://your-domain.vercel.app';
 
   const cards = [
     {
       id: 'stats',
       title: 'Public Stats Card',
       desc: 'Showcases open-source stars, public commits, PRs, issues, repos, and followers.',
-      url: statsUrl,
+      previewUrl: `/api/stats${buildQuery(previewUser)}`,
+      snippetUrl: `${readmeBaseUrl}/api/stats${buildQuery(snippetUser)}`,
       width: layout === 'vertical' ? 320 : 450,
       height: layout === 'vertical' ? 285 : 195,
-      endpoint: '/api/stats',
     },
     {
       id: 'streak',
       title: 'Public Contribution Streak',
       desc: 'Visualizes current contribution streak, all-time max streak, and total year contributions.',
-      url: streakUrl,
+      previewUrl: `/api/streak${buildQuery(previewUser)}`,
+      snippetUrl: `${readmeBaseUrl}/api/streak${buildQuery(snippetUser)}`,
       width: layout === 'vertical' ? 320 : 450,
       height: layout === 'vertical' ? 270 : 195,
-      endpoint: '/api/streak',
     },
     {
       id: 'languages',
       title: 'Top Languages Card',
       desc: 'Displays percentage breakdown of top used programming languages with proportional color bar.',
-      url: languagesUrl,
+      previewUrl: `/api/languages${buildQuery(previewUser)}`,
+      snippetUrl: `${readmeBaseUrl}/api/languages${buildQuery(snippetUser)}`,
       width: 450,
       height: 195,
-      endpoint: '/api/languages',
     },
     {
       id: 'pin',
       title: 'Pinned Repository Card',
       desc: 'Showcases a specific public repository with description, language badge, stars, and forks.',
-      url: pinUrl,
+      previewUrl: `/api/pin${buildQuery(previewUser, { repo: previewRepo })}`,
+      snippetUrl: `${readmeBaseUrl}/api/pin${buildQuery(snippetUser, { repo: snippetRepo })}`,
       width: 450,
       height: 140,
-      endpoint: '/api/pin',
     },
   ];
 
@@ -240,7 +248,7 @@ export default function Home() {
         {/* Rendered Live Cards Grid */}
         <div className="space-y-12">
           {cards.map((card) => {
-            const markdownCode = `![${card.title}](${origin}${card.url})`;
+            const markdownCode = `![${card.title}](${card.snippetUrl})`;
             return (
               <div
                 key={card.id}
@@ -257,7 +265,7 @@ export default function Home() {
                   </div>
                   <div className="flex items-center gap-2">
                     <a
-                      href={card.url}
+                      href={card.previewUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
@@ -277,7 +285,7 @@ export default function Home() {
                 <div className="flex items-center justify-center p-8 bg-zinc-100/60 dark:bg-zinc-950/60 rounded-xl my-6 border border-zinc-200/60 dark:border-zinc-800/40 overflow-x-auto">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={card.url}
+                    src={card.previewUrl}
                     alt={card.title}
                     width={card.width}
                     height={card.height}
