@@ -1,6 +1,22 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
+
+const emptySubscribe = () => () => {};
+
+function useDetectedDomain(): string {
+  return useSyncExternalStore(
+    emptySubscribe,
+    () => {
+      if (typeof window === 'undefined') return '';
+      const isLocal =
+        window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1';
+      return !isLocal && window.location.origin ? window.location.origin : '';
+    },
+    () => ''
+  );
+}
 
 const THEMES = [
   { id: 'dark', name: 'GitHub Dark', previewBg: '#0d1117' },
@@ -13,6 +29,9 @@ const THEMES = [
 ];
 
 export default function Home() {
+  const defaultAppUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://git-glyph.vercel.app';
+  const detectedDomain = useDetectedDomain();
+  const [domainOverride, setDomainOverride] = useState('');
   const [username, setUsername] = useState('');
   const [theme, setTheme] = useState('dark');
   const [layout, setLayout] = useState<'horizontal' | 'vertical'>('horizontal');
@@ -56,15 +75,9 @@ export default function Home() {
     }
   };
 
-  // Safe base URL for README snippets: Never output localhost in README markdown
-  const isLocalhost =
-    typeof window !== 'undefined' &&
-    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-
-  const readmeBaseUrl =
-    typeof window !== 'undefined' && !isLocalhost
-      ? window.location.origin
-      : 'https://your-domain.vercel.app';
+  // Safe base URL for README snippets: Use detected domain, configured env, or production fallback
+  const cleanDomain = (domainOverride.trim() || detectedDomain || defaultAppUrl).replace(/\/+$/, '');
+  const readmeBaseUrl = cleanDomain;
 
   const cards = [
     {
@@ -178,7 +191,21 @@ export default function Home() {
               In your self-hosted instance, URLs don&apos;t need username query params
             </span>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Deployment Domain */}
+            <div>
+              <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
+                Deployment Domain <span className="text-zinc-400">({detectedDomain ? 'Auto-detected' : 'From Env'})</span>
+              </label>
+              <input
+                type="text"
+                value={domainOverride}
+                onChange={(e) => setDomainOverride(e.target.value)}
+                placeholder={detectedDomain || defaultAppUrl}
+                className="w-full px-3 py-2 text-sm rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-mono placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs"
+              />
+            </div>
+
             {/* Theme Selector */}
             <div>
               <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
@@ -404,7 +431,7 @@ export default function Home() {
               1. Add Environment Variables
             </h3>
             <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
-              Add <code className="font-mono text-blue-500">GITHUB_TOKEN</code> (PAT with 0 scopes for 5,000 req/hr), <code className="font-mono text-blue-500">GITHUB_USERNAME</code> (your handle), and <code className="font-mono text-blue-500">GITHUB_REPO</code> in Vercel Project Settings.
+              Add <code className="font-mono text-blue-500">GITHUB_TOKEN</code> (PAT with 0 scopes for 5,000 req/hr), <code className="font-mono text-blue-500">GITHUB_USERNAME</code> (your handle), <code className="font-mono text-blue-500">GITHUB_REPO</code>, and optional <code className="font-mono text-blue-500">NEXT_PUBLIC_APP_URL</code> in Vercel Project Settings.
             </p>
           </div>
 
@@ -414,7 +441,7 @@ export default function Home() {
               2. Clean Embed URLs
             </h3>
             <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
-              Embed clean URLs like <code className="font-mono text-blue-500">https://your-app.vercel.app/api/stats</code> without passing usernames in the URL.
+              Embed clean URLs like <code className="font-mono text-blue-500">{`${readmeBaseUrl}/api/stats`}</code> without passing usernames in the URL.
             </p>
           </div>
 
@@ -432,7 +459,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="w-full border-t border-zinc-200 dark:border-zinc-800 py-8 text-center text-xs text-zinc-500">
-        GitGlyph · Self-Hosted Dynamic GitHub Stats · Built with Next.js &amp; Vercel Edge CDN
+        GitGlyph · Self-Hosted Dynamic Public GitHub Stats · Built with Next.js &amp; Vercel Edge CDN
       </footer>
     </div>
   );

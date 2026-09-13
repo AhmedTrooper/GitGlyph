@@ -171,7 +171,7 @@ export function renderErrorCard(message: string): string {
     .sub { font: 400 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: #57606a; }
   </style>
   <rect x="0.5" y="0.5" width="449" height="119" rx="10" fill="#ffffff" stroke="#ff8182"/>
-  <text x="25" y="45" class="title">Unable to fetch GitHub Stats</text>
+  <text x="25" y="45" class="title">Unable to fetch Public GitHub Stats</text>
   <text x="25" y="75" class="sub">${escapeXml(message)}</text>
 </svg>
   `.trim();
