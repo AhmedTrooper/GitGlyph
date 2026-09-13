@@ -391,7 +391,7 @@ export default function Home() {
               1. Add Environment Variables
             </h3>
             <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
-              Add <code className="font-mono text-blue-500">GITHUB_TOKEN</code> (PAT with 0 scopes for 5,000 req/hr) and <code className="font-mono text-blue-500">GITHUB_USERNAME</code> in Vercel Project Settings.
+              Add <code className="font-mono text-blue-500">GITHUB_TOKEN</code> (PAT with 0 scopes for 5,000 req/hr), <code className="font-mono text-blue-500">GITHUB_USERNAME</code> (default user), and <code className="font-mono text-blue-500">GITHUB_REPO</code> (default pinned repo) in Vercel Project Settings.
             </p>
           </div>
 
