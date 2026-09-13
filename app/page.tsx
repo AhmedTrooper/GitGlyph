@@ -12,38 +12,38 @@ export default async function Home(props: {
 
   const query = params.toString() ? `?${params.toString()}` : '';
 
+  const cards = [
+    { id: 'stats', label: 'Public Stats', path: `/api/stats${query}` },
+    { id: 'streak', label: 'Public Streak', path: `/api/streak${query}` },
+    { id: 'languages', label: 'Top Languages', path: `/api/languages${query}` },
+  ];
+
+  const visibleCards = card ? cards.filter((c) => c.id === card) : cards;
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-6 bg-zinc-100 dark:bg-zinc-950 p-6">
-      {(!card || card === 'stats') && (
-        /* eslint-disable-next-line @next/next/no-img-element */
-        <img
-          src={`/api/stats${query}`}
-          alt="GitHub Stats"
-          width={450}
-          height={195}
-          className="rounded-lg shadow-md max-w-full h-auto"
-        />
-      )}
-      {(!card || card === 'streak') && (
-        /* eslint-disable-next-line @next/next/no-img-element */
-        <img
-          src={`/api/streak${query}`}
-          alt="GitHub Streak Stats"
-          width={450}
-          height={195}
-          className="rounded-lg shadow-md max-w-full h-auto"
-        />
-      )}
-      {(!card || card === 'languages') && (
-        /* eslint-disable-next-line @next/next/no-img-element */
-        <img
-          src={`/api/languages${query}`}
-          alt="GitHub Top Languages"
-          width={450}
-          height={195}
-          className="rounded-lg shadow-md max-w-full h-auto"
-        />
-      )}
+    <main className="flex min-h-screen flex-col items-center justify-center gap-8 bg-zinc-100 dark:bg-zinc-950 p-6 py-12 font-sans">
+      {visibleCards.map((item) => (
+        <div key={item.id} className="flex flex-col items-center gap-3">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={item.path}
+            alt={item.label}
+            width={450}
+            height={195}
+            className="rounded-lg shadow-md max-w-full h-auto"
+          />
+          <a
+            href={item.path}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-500 shadow-sm transition-all"
+          >
+            <span>Open Raw SVG</span>
+            <span className="text-zinc-400">({item.label})</span>
+            <span>↗</span>
+          </a>
+        </div>
+      ))}
     </main>
   );
 }
