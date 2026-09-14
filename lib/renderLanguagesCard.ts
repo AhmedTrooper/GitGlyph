@@ -1,8 +1,14 @@
 import { UserLanguages } from './languages';
 import { getTheme, CustomThemeOptions } from './themes';
+import { PADDING, RESPONSIVE_STYLE_CSS, publicBadge, svgRootAttrs } from './svgBadge';
 
 export interface RenderLanguagesOptions extends CustomThemeOptions {
   customTitle?: string | null;
+  /**
+   * Optional fixed output width in pixels. When omitted, the SVG scales
+   * fluidly via viewBox + inline CSS. See `svgRootAttrs` for details.
+   */
+  requestedWidth?: number;
 }
 
 function escapeXml(unsafe: string | number | null | undefined): string {
@@ -25,23 +31,39 @@ function escapeXml(unsafe: string | number | null | undefined): string {
   });
 }
 
+/**
+ * Internal padding (in px) kept clear on every side so card content never
+ * visually touches the rounded border stroke.
+ */
+function truncateTitle(text: string, maxChars: number): string {
+  if (text.length <= maxChars) return text;
+  return text.slice(0, Math.max(1, maxChars - 1)) + '…';
+}
+
 export function renderLanguagesCard(userLangs: UserLanguages, options: RenderLanguagesOptions = {}): string {
   const theme = getTheme(options);
   const displayName = escapeXml(userLangs.name || userLangs.login);
-  const title = escapeXml(options.customTitle || `${displayName}'s Most Used Languages`);
+  // Title stays clean — the "PUBLIC" pill in the top-right corner already
+  // signals that all metrics below are public-only.
+  const rawTitle = options.customTitle || `${displayName}'s Top Languages`;
+  const title = escapeXml(truncateTitle(rawTitle, 34));
+  const badge = publicBadge(450, theme.badgeBg, theme.border, theme.badgeText);
   const langs = userLangs.languages;
 
-  const barWidth = 400;
+  const width = 450;
+  const height = 195;
+  // Bar spans [PADDING, width - PADDING] so it never touches the left/right borders
+  const barWidth = width - PADDING * 2;
   let currentX = 0;
   const barSegments = langs.map((lang, index) => {
-    const width = Math.max(2, (lang.percent / 100) * barWidth);
+    const segWidth = Math.max(2, (lang.percent / 100) * barWidth);
     const segX = currentX;
-    currentX += width;
+    currentX += segWidth;
     return `
       <rect
         x="${segX}"
         y="0"
-        width="${width}"
+        width="${segWidth}"
         height="8"
         fill="${lang.color}"
         ${index === 0 ? 'rx="4"' : ''}
@@ -64,22 +86,24 @@ export function renderLanguagesCard(userLangs: UserLanguages, options: RenderLan
   const col2Markup = col2.map((l, i) => renderLegendItem(l, i * 28)).join('\n      ');
 
   return `
-<svg width="450" height="195" viewBox="0 0 450 195" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg ${svgRootAttrs(width, height, options.requestedWidth)}>
   <style>
+    ${RESPONSIVE_STYLE_CSS}
     .title { font: 600 17px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: ${theme.title}; }
     .lang-name { font: 500 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: ${theme.bold}; }
     .lang-percent { font: 400 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: ${theme.text}; text-anchor: end; }
     .empty { font: 400 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: ${theme.text}; }
   </style>
 
-  <rect x="0.5" y="0.5" width="449" height="194" rx="10" fill="${theme.bg}" stroke="${theme.border}"/>
-  <text x="25" y="35" class="title">${title}</text>
+  <rect x="0.5" y="0.5" width="${width - 1}" height="${height - 1}" rx="10" fill="${theme.bg}" stroke="${theme.border}"/>
+  ${badge}
+  <text x="${PADDING}" y="35" class="title">${title}</text>
 
   ${
     langs.length === 0
-      ? `<text x="25" y="95" class="empty">No public language data found</text>`
+      ? `<text x="${PADDING}" y="95" class="empty">No public language data found</text>`
       : `
-  <g transform="translate(25, 55)">
+  <g transform="translate(${PADDING}, 55)">
     <rect width="${barWidth}" height="8" rx="4" fill="${theme.border}"/>
     <g clip-path="url(#bar-clip)">
       ${barSegments}
@@ -89,7 +113,7 @@ export function renderLanguagesCard(userLangs: UserLanguages, options: RenderLan
     <rect width="${barWidth}" height="8" rx="4"/>
   </clipPath>
 
-  <g transform="translate(25, 85)">
+  <g transform="translate(${PADDING}, 85)">
     <g>
       ${col1Markup}
     </g>

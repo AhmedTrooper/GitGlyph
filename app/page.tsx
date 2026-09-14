@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useSyncExternalStore } from 'react';
+import Link from 'next/link';
 import { THEMES as THEME_PALETTES, CardTheme } from '@/lib/themes';
 
 const emptySubscribe = () => () => {};
@@ -45,7 +46,10 @@ export default function Home() {
   const [textColor, setTextColor] = useState('');
   const [username, setUsername] = useState('');
   const [repo, setRepo] = useState('');
+  const [widthMode, setWidthMode] = useState<'auto' | 'fixed'>('auto');
+  const [fixedWidth, setFixedWidth] = useState<string>('400');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const activeThemeColors = THEME_PALETTES[theme as CardTheme] || THEME_PALETTES.dark;
 
@@ -65,6 +69,8 @@ export default function Home() {
     setUsername('');
     setRepo('');
     setDomainOverride('');
+    setWidthMode('auto');
+    setFixedWidth('400');
   };
 
   const hasCustomizations = Boolean(
@@ -77,7 +83,8 @@ export default function Home() {
     layout === 'vertical' ||
     theme !== 'dark' ||
     username ||
-    repo
+    repo ||
+    widthMode === 'fixed'
   );
 
   // Build query string reflecting every single code-supported parameter
@@ -116,7 +123,17 @@ export default function Home() {
     if (clean(titleColor)) params.set('title_color', clean(titleColor));
     if (clean(textColor)) params.set('text_color', clean(textColor));
 
-    // 7. Extra route-specific overrides (e.g. repo for /api/pin)
+    // 7. Fixed output width (optional). Only emitted when user opts in.
+    // Values outside [200, 4000] or non-numeric are silently ignored by the
+    // API, so we don't need to validate here — we just emit what the user typed.
+    if (widthMode === 'fixed') {
+      const n = parseInt(fixedWidth, 10);
+      if (Number.isFinite(n) && n >= 200 && n <= 4000) {
+        params.set('width', String(n));
+      }
+    }
+
+    // 8. Extra route-specific overrides (e.g. repo for /api/pin)
     for (const [k, v] of Object.entries(extra)) {
       if (k === 'repo') {
         if (repo.trim()) params.set('repo', repo.trim());
@@ -186,14 +203,14 @@ export default function Home() {
     <div className="min-h-screen bg-zinc-50 dark:bg-[#090d13] text-zinc-900 dark:text-zinc-100 font-sans antialiased">
       {/* Navbar */}
       <nav className="sticky top-0 z-50 border-b border-zinc-200 dark:border-zinc-800/80 bg-white/80 dark:bg-[#090d13]/80 backdrop-blur-md">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="max-w-6xl min-[2400px]:max-w-7xl min-[3840px]:max-w-[1600px] mx-auto px-6 min-[2400px]:px-12 min-[3840px]:px-24 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="text-2xl">⚡</span>
             <span className="font-bold text-lg tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
               GitGlyph Docs
             </span>
           </div>
-          <div className="flex items-center gap-4 text-xs font-medium">
+          <div className="hidden md:flex items-center gap-4 text-xs font-medium">
             <a
               href="#playground"
               className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
@@ -212,6 +229,12 @@ export default function Home() {
             >
               Self-Hosting
             </a>
+            <Link
+              href="/docs"
+              className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+            >
+              API Reference
+            </Link>
             <a
               href="https://github.com/AhmedTrooper/GitGlyph"
               target="_blank"
@@ -221,32 +244,83 @@ export default function Home() {
               Fork on GitHub ↗
             </a>
           </div>
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen((v) => !v)}
+            aria-label="Toggle navigation menu"
+            aria-expanded={mobileMenuOpen}
+            className="md:hidden p-2 rounded-lg border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+          >
+            {mobileMenuOpen ? '✕' : '☰'}
+          </button>
         </div>
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-zinc-200 dark:border-zinc-800/80 bg-white/95 dark:bg-[#090d13]/95 backdrop-blur-md">
+            <div className="max-w-6xl min-[2400px]:max-w-7xl min-[3840px]:max-w-[1600px] mx-auto px-6 min-[2400px]:px-12 min-[3840px]:px-24 py-3 flex flex-col gap-2 text-sm font-medium">
+              <a
+                href="#playground"
+                onClick={() => setMobileMenuOpen(false)}
+                className="py-2 text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100"
+              >
+                Playground
+              </a>
+              <a
+                href="#parameters"
+                onClick={() => setMobileMenuOpen(false)}
+                className="py-2 text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100"
+              >
+                Parameters
+              </a>
+              <a
+                href="#deployment"
+                onClick={() => setMobileMenuOpen(false)}
+                className="py-2 text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100"
+              >
+                Self-Hosting
+              </a>
+              <Link
+                href="/docs"
+                onClick={() => setMobileMenuOpen(false)}
+                className="py-2 text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100"
+              >
+                API Reference
+              </Link>
+              <a
+                href="https://github.com/AhmedTrooper/GitGlyph"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="py-2 text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100"
+              >
+                Fork on GitHub ↗
+              </a>
+            </div>
+          </div>
+        )}
       </nav>
 
       <main>
         {/* Hero Section */}
-        <header className="max-w-6xl mx-auto px-6 pt-16 pb-12 text-center">
+        <header className="max-w-6xl min-[2400px]:max-w-7xl min-[3840px]:max-w-[1600px] mx-auto px-6 min-[2400px]:px-12 min-[3840px]:px-24 pt-10 sm:pt-16 pb-8 sm:pb-12 text-center">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 mb-6">
             <span>🛡️ Self-Hosted &amp; Forkable</span>
             <span>•</span>
             <span>Zero URL Clutter</span>
           </div>
-          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50 max-w-3xl mx-auto leading-tight">
+          <h1 className="text-4xl sm:text-6xl min-[2400px]:text-7xl min-[3840px]:text-8xl min-[6000px]:text-9xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50 max-w-3xl min-[2400px]:max-w-5xl min-[3840px]:max-w-6xl mx-auto leading-tight">
             Dynamic GitHub SVG Cards for your{' '}
             <span className="bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 bg-clip-text text-transparent">
               README
             </span>
           </h1>
-          <p className="mt-5 text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto leading-relaxed">
+          <p className="mt-5 text-base sm:text-lg min-[2400px]:text-xl min-[3840px]:text-2xl text-zinc-600 dark:text-zinc-400 max-w-2xl min-[2400px]:max-w-3xl mx-auto leading-relaxed">
             Fork this repository, deploy to Vercel with your GitHub token, and embed clean URLs like{' '}
-            <code className="px-1.5 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 font-mono text-xs">/api/stats</code> directly in your README.
+            <code className="px-1.5 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 font-mono text-xs break-all sm:break-normal">/api/stats</code> directly in your README.
             No query parameters required for self-hosted instances.
           </p>
         </header>
 
         {/* Interactive Playground & Live Preview */}
-        <section id="playground" className="max-w-6xl mx-auto px-6 pb-20">
+        <section id="playground" className="max-w-6xl min-[2400px]:max-w-7xl min-[3840px]:max-w-[1600px] mx-auto px-6 min-[2400px]:px-12 min-[3840px]:px-24 pb-20">
           <div className="p-6 sm:p-8 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/70 shadow-sm mb-10">
             {/* Customizer Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-zinc-200 dark:border-zinc-800">
@@ -307,23 +381,37 @@ export default function Home() {
                   </select>
                 </div>
 
-                {/* Deployment Domain */}
+                {/* Output Width Mode (Auto / Fixed) */}
                 <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
-                      Domain
-                    </label>
-                    <span className="text-[10px] text-zinc-400 font-mono">
-                      {detectedDomain ? 'Auto-detected' : 'From Env'}
-                    </span>
+                  <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                    Output Width (<code className="font-mono text-[10px]">width</code>)
+                  </label>
+                  <div className="flex gap-2">
+                    <select
+                      value={widthMode}
+                      onChange={(e) => setWidthMode(e.target.value as 'auto' | 'fixed')}
+                      className="flex-shrink-0 px-3 py-2 text-xs rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="auto">Auto (fluid)</option>
+                      <option value="fixed">Fixed (px)</option>
+                    </select>
+                    {widthMode === 'fixed' && (
+                      <input
+                        type="number"
+                        min={200}
+                        max={4000}
+                        value={fixedWidth}
+                        onChange={(e) => setFixedWidth(e.target.value)}
+                        placeholder="400"
+                        className="w-full px-3 py-2 text-xs rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-mono placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    )}
                   </div>
-                  <input
-                    type="text"
-                    value={domainOverride}
-                    onChange={(e) => setDomainOverride(e.target.value)}
-                    placeholder={detectedDomain || defaultAppUrl}
-                    className="w-full px-3 py-2 text-xs rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-mono placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                  {widthMode === 'fixed' && (
+                    <p className="mt-1 text-[10px] text-zinc-500 dark:text-zinc-400">
+                      Lock intrinsic width (200–4000). Out-of-range falls back to fluid.
+                    </p>
+                  )}
                 </div>
 
                 {/* Hide Border Toggle */}
@@ -338,6 +426,28 @@ export default function Home() {
                     <span>Hide Border (<code className="font-mono text-[10px]">hide_border</code>)</span>
                   </label>
                 </div>
+              </div>
+
+              {/* Deployment Domain — full width on its own row below for readability */}
+              <div className="mt-4">
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                    Deployment Domain (<code className="font-mono text-[10px]">base URL</code>)
+                  </label>
+                  <span className="text-[10px] text-zinc-400 font-mono">
+                    {detectedDomain ? '✓ Auto-detected from browser' : 'From NEXT_PUBLIC_APP_URL env'}
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  value={domainOverride}
+                  onChange={(e) => setDomainOverride(e.target.value)}
+                  placeholder={detectedDomain || defaultAppUrl}
+                  className="w-full px-3 py-2 text-xs rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-mono placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p className="mt-1 text-[10px] text-zinc-500 dark:text-zinc-400">
+                  Base URL baked into the README snippet. Override to point at your self-hosted instance.
+                </p>
               </div>
             </div>
 
@@ -503,9 +613,29 @@ export default function Home() {
           </div>
 
           {/* Rendered Live Cards Grid */}
-          <div className="space-y-12">
+          <div className="space-y-8 sm:space-y-12">
             {cards.map((card) => {
               const markdownCode = `![${card.title}](${card.snippetUrl})`;
+              const copyUrlId = `${card.id}-url`;
+              const activeForCard = (() => {
+                const cleanHex = (v: string) => v.trim().replace(/^#/, '');
+                const items: Array<{ key: string; value: string }> = [];
+                if (card.id === 'pin' && repo.trim()) items.push({ key: 'repo', value: repo.trim() });
+                if (username.trim()) items.push({ key: 'username', value: username.trim() });
+                if (theme !== 'light') items.push({ key: 'theme', value: theme });
+                if ((card.id === 'stats' || card.id === 'streak') && layout === 'vertical') items.push({ key: 'layout', value: 'vertical' });
+                if (hideBorder) items.push({ key: 'hide_border', value: 'true' });
+                if (customTitle.trim()) items.push({ key: 'custom_title', value: customTitle.trim() });
+                if (cleanHex(bgColor)) items.push({ key: 'bg_color', value: cleanHex(bgColor) });
+                if (cleanHex(borderColor)) items.push({ key: 'border_color', value: cleanHex(borderColor) });
+                if (cleanHex(titleColor)) items.push({ key: 'title_color', value: cleanHex(titleColor) });
+                if (cleanHex(textColor)) items.push({ key: 'text_color', value: cleanHex(textColor) });
+                if (widthMode === 'fixed') {
+                  const n = parseInt(fixedWidth, 10);
+                  if (Number.isFinite(n) && n >= 200 && n <= 4000) items.push({ key: 'width', value: String(n) });
+                }
+                return items;
+              })();
               return (
                 <div
                   key={card.id}
@@ -520,7 +650,7 @@ export default function Home() {
                         {card.desc}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <a
                         href={card.previewUrl}
                         target="_blank"
@@ -530,6 +660,12 @@ export default function Home() {
                         Open Raw SVG ↗
                       </a>
                       <button
+                        onClick={() => copyToClipboard(card.snippetUrl, copyUrlId)}
+                        className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                      >
+                        {copiedId === copyUrlId ? '✓ URL Copied' : 'Copy URL'}
+                      </button>
+                      <button
                         onClick={() => copyToClipboard(markdownCode, card.id)}
                         className="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-500 shadow-sm transition-colors"
                       >
@@ -538,16 +674,68 @@ export default function Home() {
                     </div>
                   </div>
 
+                  {/* Active parameter chips — shows the user exactly which query params
+                      are baked into this card's URL right now. Hidden when there are no
+                      customizations to avoid noise. */}
+                  {activeForCard.length > 0 && (
+                    <div className="mt-4 flex flex-wrap items-center gap-2">
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+                        Active params:
+                      </span>
+                      {activeForCard.map((p) => (
+                        <span
+                          key={p.key}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900 text-[11px] font-mono"
+                          title={`?${p.key}=${p.value}`}
+                        >
+                          <span className="font-semibold">{p.key}</span>
+                          <span className="opacity-70">=</span>
+                          <span className="truncate max-w-[120px]">{p.value}</span>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
                   {/* SVG Card Viewer */}
                   <div className="flex items-center justify-center p-8 bg-zinc-100/60 dark:bg-zinc-950/60 rounded-xl my-6 border border-zinc-200/60 dark:border-zinc-800/40 overflow-x-auto">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={card.previewUrl}
                       alt={card.title}
-                      width={card.width}
-                      height={card.height}
-                      className="rounded-lg shadow-md max-w-full h-auto transition-transform hover:scale-[1.01]"
+                      style={{ width: '100%', height: 'auto', display: 'block' }}
+                      className="rounded-lg shadow-md transition-transform hover:scale-[1.01]"
                     />
+                  </div>
+
+                  {/* Device-widths Preview Strip — proves responsive SVG at multiple container sizes */}
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-2">
+                      <span>Renders at any width</span>
+                      <span className="normal-case text-zinc-400 font-normal">
+                        Same SVG, three container widths
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+                      {[300, 640, 1024].map((w) => (
+                        <div
+                          key={w}
+                          className="bg-zinc-100/60 dark:bg-zinc-950/60 rounded-lg border border-zinc-200/60 dark:border-zinc-800/40 p-3 flex flex-col items-center"
+                        >
+                          <span className="text-[10px] font-mono text-zinc-400 mb-2">
+                            container {w}px
+                          </span>
+                          <div style={{ width: `${w}px`, maxWidth: '100%' }} className="mx-auto">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={card.previewUrl}
+                              alt={`${card.title} at ${w}px`}
+                              style={{ width: '100%', height: 'auto', display: 'block' }}
+                              className="rounded shadow-sm"
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
 
                   {/* Markdown Snippet Code Block */}
@@ -569,7 +757,7 @@ export default function Home() {
         </section>
 
         {/* Query Parameters Reference Table */}
-        <section id="parameters" className="max-w-6xl mx-auto px-6 py-16 border-t border-zinc-200 dark:border-zinc-800">
+        <section id="parameters" className="max-w-6xl min-[2400px]:max-w-7xl min-[3840px]:max-w-[1600px] mx-auto px-6 min-[2400px]:px-12 min-[3840px]:px-24 py-16 border-t border-zinc-200 dark:border-zinc-800">
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 mb-2">
             Supported Query Parameters
           </h2>
@@ -648,48 +836,99 @@ export default function Home() {
                   <td className="p-4 text-zinc-700 dark:text-zinc-300">repo-name or owner/repo</td>
                   <td className="p-4 font-sans text-zinc-600 dark:text-zinc-400">Optional override for /api/pin. Defaults to your GITHUB_REPO environment variable.</td>
                 </tr>
+                <tr>
+                  <td className="p-4 font-semibold text-blue-600 dark:text-blue-400">width</td>
+                  <td className="p-4 text-zinc-500">Responsive</td>
+                  <td className="p-4 text-zinc-700 dark:text-zinc-300">200–4000 (integer)</td>
+                  <td className="p-4 font-sans text-zinc-600 dark:text-zinc-400">Optional fixed width in pixels. Overrides the default responsive scaling for badge-style embeds. Out-of-range or invalid values fall back to responsive.</td>
+                </tr>
               </tbody>
             </table>
           </div>
         </section>
 
         {/* Deployment & Free Vercel Setup */}
-        <section id="deployment" className="max-w-6xl mx-auto px-6 py-16 border-t border-zinc-200 dark:border-zinc-800">
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 mb-2">
-            Self-Hosting on Vercel Free Tier
-          </h2>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-8">
-            Fork this repository to your personal GitHub, link it to Vercel, and set your private credentials once.
-          </p>
+        <section id="deployment" className="max-w-6xl min-[2400px]:max-w-7xl min-[3840px]:max-w-[1600px] mx-auto px-6 min-[2400px]:px-12 min-[3840px]:px-24 py-16 border-t border-zinc-200 dark:border-zinc-800">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
+            <div>
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 mb-2">
+                Self-Hosting on Vercel Free Tier
+              </h2>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                Four steps. About 5 minutes. Zero compute hours per README view.
+              </p>
+            </div>
+            <a
+              href="https://github.com/AhmedTrooper/GitGlyph/fork"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="self-start sm:self-auto px-4 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-500 shadow-sm transition-colors flex items-center gap-2"
+            >
+              <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+                <path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a2.25 2.25 0 0 1-2.25 2.25h-1.5v2.128a2.251 2.251 0 1 1-1.5 0V8.5h-1.5A2.25 2.25 0 0 1 3.5 6.25v-.878a2.25 2.25 0 1 1 1.5 0ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm6.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm-3 8.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z" />
+              </svg>
+              Fork on GitHub ↗
+            </a>
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Step 1: Fork */}
+            <div className="relative p-5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+              <span className="absolute top-3 right-3 text-[10px] font-bold tracking-wider text-zinc-400 dark:text-zinc-500">STEP 1</span>
+              <div className="text-2xl mb-2">🍴</div>
+              <h3 className="font-semibold text-sm mb-1 text-zinc-900 dark:text-zinc-100">
+                Fork the repository
+              </h3>
+              <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                Click <strong className="text-zinc-900 dark:text-zinc-100">Fork on GitHub</strong> above. This creates <code className="font-mono text-blue-500">your-username/GitGlyph</code> under your account so you can deploy it with your own credentials.
+              </p>
+            </div>
+
+            {/* Step 2: Vercel Import */}
+            <div className="relative p-5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+              <span className="absolute top-3 right-3 text-[10px] font-bold tracking-wider text-zinc-400 dark:text-zinc-500">STEP 2</span>
+              <div className="text-2xl mb-2">▲</div>
+              <h3 className="font-semibold text-sm mb-1 text-zinc-900 dark:text-zinc-100">
+                Import to Vercel
+              </h3>
+              <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                Visit <a href="https://vercel.com/new" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">vercel.com/new</a>, pick your forked repo, and click <strong className="text-zinc-900 dark:text-zinc-100">Deploy</strong>. The first build runs before any env vars are set &mdash; that&apos;s expected and will produce error cards. We&apos;ll fix that next.
+              </p>
+            </div>
+
+            {/* Step 3: Env vars */}
+            <div className="relative p-5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+              <span className="absolute top-3 right-3 text-[10px] font-bold tracking-wider text-zinc-400 dark:text-zinc-500">STEP 3</span>
               <div className="text-2xl mb-2">🔑</div>
               <h3 className="font-semibold text-sm mb-1 text-zinc-900 dark:text-zinc-100">
-                1. Add Environment Variables
+                Add Environment Variables
               </h3>
               <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                Add <code className="font-mono text-blue-500">GITHUB_TOKEN</code> (PAT with 0 scopes for 5,000 req/hr), <code className="font-mono text-blue-500">GITHUB_USERNAME</code> (your handle), <code className="font-mono text-blue-500">GITHUB_REPO</code>, and optional <code className="font-mono text-blue-500">NEXT_PUBLIC_APP_URL</code> in Vercel Project Settings.
+                In Vercel Project Settings → Environment Variables, add all four:
               </p>
+              <ul className="mt-2 text-xs text-zinc-700 dark:text-zinc-300 space-y-1 font-mono">
+                <li><code className="text-blue-500">GITHUB_TOKEN</code> <span className="text-zinc-500">— PAT, 0 scopes, 5k req/hr</span></li>
+                <li><code className="text-blue-500">GITHUB_USERNAME</code> <span className="text-zinc-500">— your handle</span></li>
+                <li><code className="text-blue-500">GITHUB_REPO</code> <span className="text-zinc-500">— default repo</span></li>
+                <li><code className="text-blue-500">NEXT_PUBLIC_APP_URL</code> <span className="text-zinc-500">— your Vercel URL (optional)</span></li>
+              </ul>
             </div>
 
-            <div className="p-5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+            {/* Step 4: Embed */}
+            <div className="relative p-5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+              <span className="absolute top-3 right-3 text-[10px] font-bold tracking-wider text-zinc-400 dark:text-zinc-500">STEP 4</span>
               <div className="text-2xl mb-2">⚡</div>
               <h3 className="font-semibold text-sm mb-1 text-zinc-900 dark:text-zinc-100">
-                2. Clean Embed URLs
+                Embed clean URLs
               </h3>
               <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                Embed clean URLs like <code className="font-mono text-blue-500">{`${readmeBaseUrl}/api/stats`}</code> without passing usernames in the URL.
+                Redeploy once env vars are set, then drop a clean URL into your README:
               </p>
-            </div>
-
-            <div className="p-5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
-              <div className="text-2xl mb-2">🛡️</div>
-              <h3 className="font-semibold text-sm mb-1 text-zinc-900 dark:text-zinc-100">
-                3. Edge CDN Cache
-              </h3>
-              <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                Cached for 5 hours via <code className="font-mono text-blue-500">s-maxage=18000</code>. Zero compute hours are consumed during active readme views.
+              <pre className="mt-2 p-2 rounded bg-zinc-950 text-zinc-200 text-[10px] font-mono overflow-x-auto border border-zinc-800">
+                <code>{`![Stats](${readmeBaseUrl}/api/stats)`}</code>
+              </pre>
+              <p className="mt-2 text-[10px] text-zinc-500">
+                Cached for 5h via <code className="font-mono text-blue-500">s-maxage=18000</code>. Zero compute hours per view.
               </p>
             </div>
           </div>

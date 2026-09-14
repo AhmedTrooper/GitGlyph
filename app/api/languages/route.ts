@@ -2,15 +2,15 @@ import { NextResponse } from 'next/server';
 import { fetchUserLanguages } from '@/lib/languages';
 import { renderLanguagesCard } from '@/lib/renderLanguagesCard';
 import { renderErrorCard } from '@/lib/renderCard';
+import { resolveUsername } from '@/lib/username';
+import { parseRequestedWidth } from '@/lib/requestWidth';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
 
-  // 1. Resolve username: query param -> GITHUB_USERNAME env var -> fallback 'octocat'
-  const username =
-    searchParams.get('username')?.trim() ||
-    process.env.GITHUB_USERNAME?.trim() ||
-    'octocat';
+  // 1. Resolve username: query param -> GITHUB_USERNAME env var -> hardcoded 'ahmedtrooper'
+  const username = resolveUsername(searchParams.get('username'));
+  const requestedWidth = parseRequestedWidth(searchParams.get('width'));
 
   // 2. Query options
   const theme = searchParams.get('theme');
@@ -31,6 +31,7 @@ export async function GET(request: Request) {
       border,
       title: titleColor,
       text,
+      requestedWidth,
     });
 
     // 3. Return SVG with Vercel Edge CDN cache headers (5 hours = 18000s)
@@ -43,7 +44,7 @@ export async function GET(request: Request) {
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Failed to fetch languages data';
-    const errorSvg = renderErrorCard(message);
+    const errorSvg = renderErrorCard(message, requestedWidth);
 
     return new NextResponse(errorSvg, {
       status: 200,

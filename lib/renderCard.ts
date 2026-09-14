@@ -1,11 +1,19 @@
 import { UserStats } from './github';
 import { getTheme, CustomThemeOptions } from './themes';
+import { PADDING, RESPONSIVE_STYLE_CSS, publicBadge, svgRootAttrs } from './svgBadge';
 
 export type CardLayout = 'horizontal' | 'vertical';
 
 export interface RenderCardOptions extends CustomThemeOptions {
   layout?: CardLayout;
   customTitle?: string | null;
+  /**
+   * Optional fixed output width in pixels. When omitted (default) the SVG
+   * drops its `width`/`height` attributes and scales fluidly to fill any
+   * container. When provided (e.g. for badge-style embeds), the SVG gets a
+   * `width="N"` attribute and renders at a fixed intrinsic size.
+   */
+  requestedWidth?: number;
 }
 
 function escapeXml(unsafe: string | number | null | undefined): string {
@@ -38,6 +46,24 @@ function formatNumber(num: number): string {
   return num.toLocaleString('en-US');
 }
 
+/**
+ * Approximate max characters that fit in the title at the default 17px font
+ * width before clipping. Avoids long usernames/custom titles from spilling
+ * over the right border.
+ */
+function truncateTitle(text: string, maxChars: number): string {
+  if (text.length <= maxChars) return text;
+  return text.slice(0, Math.max(1, maxChars - 1)) + '…';
+}
+
+/**
+ * Truncate arbitrary text (titles, error messages) to a maximum number of
+ * characters, appending an ellipsis. Shared by error cards and titles.
+ */
+function truncateText(text: string, maxChars: number): string {
+  return truncateTitle(text, maxChars);
+}
+
 const ICONS = {
   star: 'M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z',
   commit: 'M11.93 8.5a4.002 4.002 0 0 1-7.86 0H.75a.75.75 0 0 1 0-1.5h3.32a4.002 4.002 0 0 1 7.86 0h3.32a.75.75 0 0 1 0 1.5Zm-1.43-.75a2.5 2.5 0 1 0-5 0 2.5 2.5 0 0 0 5 0Z',
@@ -50,129 +76,153 @@ const ICONS = {
 export function renderCard(stats: UserStats, options: RenderCardOptions = {}): string {
   const theme = getTheme(options);
   const layout = options.layout === 'vertical' ? 'vertical' : 'horizontal';
-  const title = escapeXml(options.customTitle || `${stats.name || stats.login}'s GitHub Stats`);
+  const rawTitle = options.customTitle || `${stats.name || stats.login}'s GitHub Stats`;
+  // Reserve space on the right for the PUBLIC pill, then truncate the title
+  // so the two never overlap.
+  const titleMaxChars = layout === 'vertical' ? 26 : 38;
+  const title = escapeXml(truncateTitle(rawTitle, titleMaxChars));
+  const intrinsicWidth = layout === 'vertical' ? 320 : 450;
+  const badge = publicBadge(intrinsicWidth, theme.badgeBg, theme.border, theme.badgeText);
 
   if (layout === 'vertical') {
     const width = 320;
     const height = 285;
+    // Available width inside the card after subtracting PADDING on each side
+    const innerWidth = width - PADDING * 2;
+    // Right-side value x within group at translate(PADDING, y): group ends at
+    // PADDING + innerWidth, so the right-anchored text sits at x = innerWidth.
+    const valueX = innerWidth;
     return `
-<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg ${svgRootAttrs(width, height, options.requestedWidth)}>
   <style>
-    .title { font: 600 16px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: ${theme.title}; }
+    .title { font: 600 15px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: ${theme.title}; }
+    ${RESPONSIVE_STYLE_CSS}
     .stat-label { font: 400 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: ${theme.text}; }
     .stat-value { font: 700 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: ${theme.bold}; }
     .icon { fill: ${theme.icon}; }
   </style>
 
   <rect x="0.5" y="0.5" width="${width - 1}" height="${height - 1}" rx="10" fill="${theme.bg}" stroke="${theme.border}"/>
-  <text x="25" y="35" class="title">${title}</text>
+  ${badge}
+  <text x="${PADDING}" y="35" class="title">${title}</text>
 
-  <g transform="translate(25, 65)">
+  <g transform="translate(${PADDING}, 65)">
     <svg class="icon" viewBox="0 0 16 16" width="16" height="16"><path d="${ICONS.star}"/></svg>
-    <text x="25" y="12.5" class="stat-label">Stars Earned:</text>
-    <text x="260" y="12.5" text-anchor="end" class="stat-value">${formatNumber(stats.totalStars)}</text>
+    <text x="25" y="12.5" class="stat-label">Stars:</text>
+    <text x="${valueX}" y="12.5" text-anchor="end" class="stat-value">${formatNumber(stats.totalStars)}</text>
   </g>
 
-  <g transform="translate(25, 100)">
+  <g transform="translate(${PADDING}, 100)">
     <svg class="icon" viewBox="0 0 16 16" width="16" height="16"><path d="${ICONS.commit}"/></svg>
-    <text x="25" y="12.5" class="stat-label">Total Commits:</text>
-    <text x="260" y="12.5" text-anchor="end" class="stat-value">${formatNumber(stats.totalCommits)}</text>
+    <text x="25" y="12.5" class="stat-label">Commits:</text>
+    <text x="${valueX}" y="12.5" text-anchor="end" class="stat-value">${formatNumber(stats.totalCommits)}</text>
   </g>
 
-  <g transform="translate(25, 135)">
+  <g transform="translate(${PADDING}, 135)">
     <svg class="icon" viewBox="0 0 16 16" width="16" height="16"><path d="${ICONS.pr}"/></svg>
-    <text x="25" y="12.5" class="stat-label">Total PRs:</text>
-    <text x="260" y="12.5" text-anchor="end" class="stat-value">${formatNumber(stats.totalPRs)}</text>
+    <text x="25" y="12.5" class="stat-label">PRs:</text>
+    <text x="${valueX}" y="12.5" text-anchor="end" class="stat-value">${formatNumber(stats.totalPRs)}</text>
   </g>
 
-  <g transform="translate(25, 170)">
+  <g transform="translate(${PADDING}, 170)">
     <svg class="icon" viewBox="0 0 16 16" width="16" height="16"><path d="${ICONS.issue}"/></svg>
-    <text x="25" y="12.5" class="stat-label">Total Issues:</text>
-    <text x="260" y="12.5" text-anchor="end" class="stat-value">${formatNumber(stats.totalIssues)}</text>
+    <text x="25" y="12.5" class="stat-label">Issues:</text>
+    <text x="${valueX}" y="12.5" text-anchor="end" class="stat-value">${formatNumber(stats.totalIssues)}</text>
   </g>
 
-  <g transform="translate(25, 205)">
+  <g transform="translate(${PADDING}, 205)">
     <svg class="icon" viewBox="0 0 16 16" width="16" height="16"><path d="${ICONS.repo}"/></svg>
-    <text x="25" y="12.5" class="stat-label">Total Repos:</text>
-    <text x="260" y="12.5" text-anchor="end" class="stat-value">${formatNumber(stats.publicRepos)}</text>
+    <text x="25" y="12.5" class="stat-label">Repos:</text>
+    <text x="${valueX}" y="12.5" text-anchor="end" class="stat-value">${formatNumber(stats.publicRepos)}</text>
   </g>
 
-  <g transform="translate(25, 240)">
+  <g transform="translate(${PADDING}, 240)">
     <svg class="icon" viewBox="0 0 16 16" width="16" height="16"><path d="${ICONS.followers}"/></svg>
     <text x="25" y="12.5" class="stat-label">Followers:</text>
-    <text x="260" y="12.5" text-anchor="end" class="stat-value">${formatNumber(stats.followers)}</text>
+    <text x="${valueX}" y="12.5" text-anchor="end" class="stat-value">${formatNumber(stats.followers)}</text>
   </g>
 </svg>
     `.trim();
   }
 
   // Horizontal layout (default)
+  const width = 450;
+  const height = 195;
+  const innerWidth = width - PADDING * 2;
+  // Two columns each ~195px wide (gap of ~10px between them)
+  const columnWidth = (innerWidth - 10) / 2;
+  const rightColumnX = PADDING + columnWidth + 10;
+  const leftValueX = columnWidth;
+  const rightValueX = columnWidth;
   return `
-<svg width="450" height="195" viewBox="0 0 450 195" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg ${svgRootAttrs(width, height, options.requestedWidth)}>
   <style>
-    .title { font: 600 17px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: ${theme.title}; }
+    .title { font: 600 15px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: ${theme.title}; }
+    ${RESPONSIVE_STYLE_CSS}
     .stat-label { font: 400 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: ${theme.text}; }
     .stat-value { font: 700 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: ${theme.bold}; }
     .icon { fill: ${theme.icon}; }
   </style>
 
   <!-- Background Card -->
-  <rect x="0.5" y="0.5" width="449" height="194" rx="10" fill="${theme.bg}" stroke="${theme.border}"/>
+  <rect x="0.5" y="0.5" width="${width - 1}" height="${height - 1}" rx="10" fill="${theme.bg}" stroke="${theme.border}"/>
 
   <!-- Card Header -->
-  <text x="25" y="35" class="title">${title}</text>
+  ${badge}
+  <text x="${PADDING}" y="35" class="title">${title}</text>
 
   <!-- Left Column -->
-  <g transform="translate(25, 60)">
+  <g transform="translate(${PADDING}, 60)">
     <svg class="icon" viewBox="0 0 16 16" width="16" height="16"><path d="${ICONS.star}"/></svg>
-    <text x="25" y="12.5" class="stat-label">Stars Earned:</text>
-    <text x="175" y="12.5" class="stat-value">${formatNumber(stats.totalStars)}</text>
+    <text x="25" y="12.5" class="stat-label">Stars:</text>
+    <text x="${leftValueX}" y="12.5" text-anchor="end" class="stat-value">${formatNumber(stats.totalStars)}</text>
   </g>
 
-  <g transform="translate(25, 95)">
+  <g transform="translate(${PADDING}, 95)">
     <svg class="icon" viewBox="0 0 16 16" width="16" height="16"><path d="${ICONS.commit}"/></svg>
-    <text x="25" y="12.5" class="stat-label">Total Commits:</text>
-    <text x="175" y="12.5" class="stat-value">${formatNumber(stats.totalCommits)}</text>
+    <text x="25" y="12.5" class="stat-label">Commits:</text>
+    <text x="${leftValueX}" y="12.5" text-anchor="end" class="stat-value">${formatNumber(stats.totalCommits)}</text>
   </g>
 
-  <g transform="translate(25, 130)">
+  <g transform="translate(${PADDING}, 130)">
     <svg class="icon" viewBox="0 0 16 16" width="16" height="16"><path d="${ICONS.pr}"/></svg>
-    <text x="25" y="12.5" class="stat-label">Total PRs:</text>
-    <text x="175" y="12.5" class="stat-value">${formatNumber(stats.totalPRs)}</text>
+    <text x="25" y="12.5" class="stat-label">PRs:</text>
+    <text x="${leftValueX}" y="12.5" text-anchor="end" class="stat-value">${formatNumber(stats.totalPRs)}</text>
   </g>
 
   <!-- Right Column -->
-  <g transform="translate(245, 60)">
+  <g transform="translate(${rightColumnX}, 60)">
     <svg class="icon" viewBox="0 0 16 16" width="16" height="16"><path d="${ICONS.issue}"/></svg>
-    <text x="25" y="12.5" class="stat-label">Total Issues:</text>
-    <text x="160" y="12.5" class="stat-value">${formatNumber(stats.totalIssues)}</text>
+    <text x="25" y="12.5" class="stat-label">Issues:</text>
+    <text x="${rightValueX}" y="12.5" text-anchor="end" class="stat-value">${formatNumber(stats.totalIssues)}</text>
   </g>
 
-  <g transform="translate(245, 95)">
+  <g transform="translate(${rightColumnX}, 95)">
     <svg class="icon" viewBox="0 0 16 16" width="16" height="16"><path d="${ICONS.repo}"/></svg>
-    <text x="25" y="12.5" class="stat-label">Total Repos:</text>
-    <text x="160" y="12.5" class="stat-value">${formatNumber(stats.publicRepos)}</text>
+    <text x="25" y="12.5" class="stat-label">Repos:</text>
+    <text x="${rightValueX}" y="12.5" text-anchor="end" class="stat-value">${formatNumber(stats.publicRepos)}</text>
   </g>
 
-  <g transform="translate(245, 130)">
+  <g transform="translate(${rightColumnX}, 130)">
     <svg class="icon" viewBox="0 0 16 16" width="16" height="16"><path d="${ICONS.followers}"/></svg>
     <text x="25" y="12.5" class="stat-label">Followers:</text>
-    <text x="160" y="12.5" class="stat-value">${formatNumber(stats.followers)}</text>
+    <text x="${rightValueX}" y="12.5" text-anchor="end" class="stat-value">${formatNumber(stats.followers)}</text>
   </g>
 </svg>
   `.trim();
 }
 
-export function renderErrorCard(message: string): string {
+export function renderErrorCard(message: string, requestedWidth?: number): string {
   return `
-<svg width="450" height="120" viewBox="0 0 450 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg ${svgRootAttrs(450, 120, requestedWidth)}>
   <style>
+    ${RESPONSIVE_STYLE_CSS}
     .title { font: 600 15px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: #cf222e; }
     .sub { font: 400 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; fill: #57606a; }
   </style>
   <rect x="0.5" y="0.5" width="449" height="119" rx="10" fill="#ffffff" stroke="#ff8182"/>
-  <text x="25" y="45" class="title">Unable to fetch GitHub Stats</text>
-  <text x="25" y="75" class="sub">${escapeXml(message)}</text>
+  <text x="${PADDING}" y="45" class="title">Unable to fetch GitHub Stats</text>
+  <text x="${PADDING}" y="75" class="sub">${escapeXml(truncateText(message, 70))}</text>
 </svg>
   `.trim();
 }
