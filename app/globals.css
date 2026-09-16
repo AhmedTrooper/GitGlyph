@@ -1,13 +1,90 @@
 @import "tailwindcss";
 
+/* ---------------------------------------------------------------------------
+ * GitGlyph design tokens
+ *
+ * Light mode: warm off-white surfaces (#fafaf9 = stone-50). Pure #fff is
+ * reserved for embedded code/quote blocks so they don't glare.
+ *
+ * Dark mode: warm-tinted slate in the #0e1217 → #161b22 family. Slightly warm
+ * to harmonise with the SVG theme palettes (dracula/nord/catppuccin) and to
+ * reduce blue-light eye-strain vs pure-black.
+ *
+ * Both modes surface their foreground/text on layered card backgrounds
+ * (surface / surface-2 / surface-3) instead of toggling pure white ↔ pure
+ * black, which eliminates the bright "flash" when the page is dark.
+ * ------------------------------------------------------------------------- */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fafaf9;          /* page bg, light */
+  --foreground: #1c1917;          /* primary text, light (stone-900-ish, warm) */
+  --muted: #57534e;               /* secondary text, light (stone-600) */
+  --subtle: #78716c;              /* tertiary text, light (stone-500) */
+  --surface: #ffffff;             /* card surface, light */
+  --surface-2: #f5f5f4;           /* nested card surface, light (stone-100) */
+  --surface-3: #e7e5e4;           /* deepest layer / hover, light (stone-200) */
+  --border: #e7e5e4;              /* hairline border, light (stone-200) */
+  --border-strong: #d6d3d1;       /* stronger border, light (stone-300) */
+  --accent: #4f46e5;              /* indigo-600 — single accent across modes */
+  --accent-soft: #eef2ff;         /* indigo-50 chip background, light */
+  --accent-text: #4338ca;         /* indigo-700 on accent chips, light */
+  --success: #047857;             /* emerald-700, WCAG AA on white */
+  --success-soft: #ecfdf5;        /* emerald-50 */
+  --success-text: #065f46;        /* emerald-800 */
+  --danger: #b91c1c;              /* red-700 */
+  --danger-soft: #fef2f2;         /* red-50 */
+  --danger-text: #991b1b;         /* red-800 */
+  --code-bg: #1c1917;             /* code block bg, always warm-dark */
+  --code-fg: #fafaf9;             /* code block fg */
+  --code-inline-bg: #f5f5f4;      /* inline code bg, light */
+  --code-inline-fg: #1c1917;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0e1217;        /* warm slate, not pure black */
+    --foreground: #e6e1d8;        /* warm off-white (slight cream) */
+    --muted: #a8a39a;             /* stone-400-ish, warmer than zinc-400 */
+    --subtle: #78716c;            /* stone-500 */
+    --surface: #161b22;           /* card surface, dark — matches GitHub dim */
+    --surface-2: #1c2230;         /* nested card, dark */
+    --surface-3: #232a39;         /* hover/active, dark */
+    --border: #232a39;            /* hairline border, dark */
+    --border-strong: #2f3849;     /* stronger border, dark */
+    --accent: #818cf8;            /* indigo-400 — softer than indigo-500 on dark */
+    --accent-soft: #1e1b4b;      /* indigo-950 chip background */
+    --accent-text: #c7d2fe;       /* indigo-200 text on chip */
+    --success: #34d399;           /* emerald-400 */
+    --success-soft: #064e3b;      /* emerald-950 */
+    --success-text: #6ee7b7;      /* emerald-300 */
+    --danger: #f87171;            /* red-400 */
+    --danger-soft: #450a0a;       /* red-950 */
+    --danger-text: #fca5a5;       /* red-300 */
+    --code-bg: #0a0d12;           /* deepest dark for code blocks */
+    --code-fg: #e6e1d8;
+    --code-inline-bg: #1c2230;
+    --code-inline-fg: #e6e1d8;
+  }
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-text: var(--accent-text);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-success-text: var(--success-text);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-text: var(--danger-text);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --text-7xl: 4.5rem;
@@ -15,15 +92,66 @@
   --text-9xl: 8rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Smooth colour transitions when the user toggles dark mode — without it,
+ * the page snaps harshly between near-black and warm cream, which is what
+ * causes the eye strain that motivated this redesign. */
+html {
+  color-scheme: light dark;
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    transition: background-color 200ms ease;
+  }
+  body,
+  body * {
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-duration: 200ms;
+    transition-timing-function: ease;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-feature-settings: "cv11", "ss01", "ss03"; /* Geist nicer numerals */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Comfortable reading width — anything wider than ~72ch hurts the eyes on
+ * long-form text. This rule only applies to long-form copy, not the
+ * customizer/code/preview surfaces where wider is fine. */
+.prose-readable {
+  max-width: 68ch;
+}
+
+/* Soft inner-glow border for hero / cards. Renders as a faint 1px stroke
+ * with a subtle inner highlight, less harsh than `border-zinc-200`. */
+.soft-border {
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / 0.04),
+    0 1px 0 0 var(--border);
+}
+
+/* Focus-visible ring with offset — WCAG-friendly. The default Tailwind
+ * focus:ring-2 has no offset and the ring overlaps content. */
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Remove the default browser focus ring where we set our own */
+:where(button, a, input, select, textarea, [tabindex]):focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* SVG icons inside cards should inherit currentColor unless overridden */
+:where(svg) {
+  flex-shrink: 0;
 }

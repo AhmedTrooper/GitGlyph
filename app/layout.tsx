@@ -17,8 +17,8 @@ const appUrl = (process.env.NEXT_PUBLIC_APP_URL || "https://git-glyph.vercel.app
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: "#090d13" },
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0e1217" },
+    { media: "(prefers-color-scheme: light)", color: "#fafaf9" },
   ],
   width: "device-width",
   initialScale: 1,

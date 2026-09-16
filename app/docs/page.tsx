@@ -68,7 +68,7 @@ const ENDPOINTS: EndpointDoc[] = [
       {
         name: 'custom_title',
         type: 'string',
-        defaultSource: '"{name}\'s GitHub Stats"',
+        defaultSource: "{name}'s GitHub Stats",
         allowed: 'any string (≤38 chars)',
         description:
           'Overrides the card header text. Auto-generated from the user\'s GitHub `name` field, falling back to their `login`. Truncated with an ellipsis past 38 characters.',
@@ -157,7 +157,7 @@ const ENDPOINTS: EndpointDoc[] = [
       {
         name: 'custom_title',
         type: 'string',
-        defaultSource: '"{name}\'s Contribution Streak"',
+        defaultSource: "{name}'s Contribution Streak",
         allowed: 'any string (≤38 chars)',
         description: 'Overrides the card header text.',
       },
@@ -189,7 +189,7 @@ const ENDPOINTS: EndpointDoc[] = [
     method: 'GET',
     path: '/api/languages',
     summary:
-      'Top 5 programming languages by total bytes across your owned non-fork repositories, with each language\'s percentage of the total and its GitHub-assigned color.',
+      "Top 5 programming languages by total bytes across your owned non-fork repositories, with each language's percentage of the total and its GitHub-assigned color.",
     dataSource:
       'GitHub GraphQL `user(login).repositories(first: 100, isFork: false, orderBy: STARGAZERS DESC).languages(first: 8, orderBy: SIZE DESC)` query. Bytes are summed per language across all 100 repos, then top 5 are returned with their percent of total.',
     response:
@@ -214,7 +214,7 @@ const ENDPOINTS: EndpointDoc[] = [
       {
         name: 'custom_title',
         type: 'string',
-        defaultSource: '"{name}\'s Top Languages"',
+        defaultSource: "{name}'s Top Languages",
         allowed: 'any string (≤38 chars)',
         description: 'Overrides the card header text.',
       },
@@ -246,7 +246,7 @@ const ENDPOINTS: EndpointDoc[] = [
     method: 'GET',
     path: '/api/pin',
     summary:
-      'Single-repository card with name, description, primary language with its color, star count, fork count, and a "Public"/"Fork" badge derived from the repo\'s visibility.',
+      "Single-repository card with name, description, primary language with its color, star count, fork count, and a \"Public\"/\"Fork\" badge derived from the repo's visibility.",
     dataSource:
       'GitHub GraphQL `repository(owner, name)` query. Takes either `repo=owner/name` or just `repo=name` (in which case owner falls back to GITHUB_USERNAME env, then "ahmedtrooper").',
     response:
@@ -374,33 +374,51 @@ const RATE_LIMITS = [
   },
 ];
 
+// Shared utility class strings — keeps className lists below readable.
+const cardClass =
+  'rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-[0_1px_2px_rgb(0_0_0_/_0.04),0_8px_24px_-12px_rgb(0_0_0_/_0.08)]';
+
 export default function DocsPage() {
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-[#090d13] text-zinc-900 dark:text-zinc-100 font-sans antialiased">
+    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] font-sans antialiased">
+      {/* Ambient gradient — same as home page */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
+      >
+        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[80rem] h-[40rem] rounded-full bg-[var(--accent)] opacity-[0.06] blur-3xl" />
+      </div>
+
       {/* Navbar */}
-      <nav className="sticky top-0 z-50 border-b border-zinc-200 dark:border-zinc-800/80 bg-white/80 dark:bg-[#090d13]/80 backdrop-blur-md">
+      <nav className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-md supports-[backdrop-filter]:bg-[var(--background)]/60">
         <div className="max-w-6xl min-[2400px]:max-w-7xl min-[3840px]:max-w-[1600px] mx-auto px-4 sm:px-6 min-[2400px]:px-12 min-[3840px]:px-24 h-16 flex items-center justify-between">
           <Link
             href="/"
-            className="flex items-center gap-3 font-bold text-lg tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent"
+            className="flex items-center gap-2.5 font-bold text-base tracking-tight bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500 bg-clip-text text-transparent hover:opacity-80 transition-opacity"
           >
-            <span className="text-2xl">⚡</span>
+            <span aria-hidden="true" className="text-xl">⚡</span>
             <span>GitGlyph Docs</span>
           </Link>
-          <div className="flex items-center gap-4 text-xs font-medium">
+          <div className="flex items-center gap-2 text-sm font-medium">
             <Link
               href="/"
-              className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+              className="px-3 py-1.5 rounded-md text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface-2)] transition-colors flex items-center gap-1.5"
             >
-              ← Playground
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="m15 18-6-6 6-6" />
+              </svg>
+              Playground
             </Link>
             <a
               href="https://github.com/AhmedTrooper/GitGlyph"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-3 py-1.5 rounded-lg border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+              className="px-3 py-1.5 rounded-md border border-[var(--border-strong)] text-[var(--foreground)] hover:bg-[var(--surface-2)] transition-colors flex items-center gap-1.5"
             >
-              Fork on GitHub ↗
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z" />
+              </svg>
+              Fork
             </a>
           </div>
         </div>
@@ -409,14 +427,14 @@ export default function DocsPage() {
       <main className="max-w-6xl min-[2400px]:max-w-7xl min-[3840px]:max-w-[1600px] mx-auto px-4 sm:px-6 min-[2400px]:px-12 min-[3840px]:px-24 py-10 sm:py-16">
         {/* Page header */}
         <header className="mb-12">
-          <p className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 mb-4">
-            <span>📖</span>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-[var(--accent-soft)] text-[var(--accent-text)] border border-[var(--accent)]/20 mb-4">
+            <span aria-hidden="true">📖</span>
             <span>Source of Truth · API Reference</span>
-          </p>
+          </div>
           <h1 className="text-3xl sm:text-5xl min-[2400px]:text-6xl min-[3840px]:text-7xl font-extrabold tracking-tight leading-tight">
             GitGlyph API
           </h1>
-          <p className="mt-4 text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-3xl leading-relaxed">
+          <p className="mt-4 text-base sm:text-lg text-[var(--muted)] max-w-3xl leading-relaxed">
             Every endpoint, every query parameter, every response header, every theme
             palette — all in one place. This page is the source of truth for embedding
             GitGlyph cards in your GitHub README.
@@ -426,12 +444,12 @@ export default function DocsPage() {
         {/* Quick-start anchors */}
         <nav
           aria-label="On this page"
-          className="mb-12 p-4 sm:p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50"
+          className={`${cardClass} p-5 sm:p-6 mb-12`}
         >
-          <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-3">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--subtle)] mb-3">
             On this page
           </h2>
-          <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-sm">
+          <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1.5 text-sm">
             {[
               ['#endpoints', 'Endpoints'],
               ['#parameters', 'Query Parameters'],
@@ -446,7 +464,7 @@ export default function DocsPage() {
               <li key={href}>
                 <a
                   href={href}
-                  className="block px-3 py-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 transition-colors"
+                  className="block px-3 py-2 rounded-md text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface-2)] transition-colors"
                 >
                   {label}
                 </a>
@@ -457,96 +475,98 @@ export default function DocsPage() {
 
         {/* ============ ENDPOINTS ============ */}
         <section id="endpoints" className="mb-16">
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">
-            Endpoints
-          </h2>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-8">
-            All four endpoints return <code className="font-mono text-xs">image/svg+xml</code>.
-            Use them as <code className="font-mono text-xs">&lt;img src&gt;</code> in any
-            README.
-          </p>
+          <div className="mb-8">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
+              Endpoints
+            </h2>
+            <p className="text-sm text-[var(--muted)] mt-2 max-w-3xl">
+              All four endpoints return <code className="font-mono text-xs px-1.5 py-0.5 rounded bg-[var(--code-inline-bg)] text-[var(--code-inline-fg)]">image/svg+xml</code>.
+              Use them as <code className="font-mono text-xs px-1.5 py-0.5 rounded bg-[var(--code-inline-bg)] text-[var(--code-inline-fg)]">&lt;img src&gt;</code> in any
+              README.
+            </p>
+          </div>
 
-          <div className="space-y-12">
+          <div className="space-y-10">
             {ENDPOINTS.map((ep) => (
               <article
                 key={ep.id}
                 id={ep.id}
-                className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 overflow-hidden"
+                className={`${cardClass} overflow-hidden`}
               >
-                <header className="p-5 sm:p-6 border-b border-zinc-200 dark:border-zinc-800">
+                <header className="p-5 sm:p-6 border-b border-[var(--border)] bg-[var(--surface-2)]/40">
                   <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-3">
-                    <span className="self-start px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs font-bold tracking-wide">
+                    <span className="self-start px-2 py-0.5 rounded-md bg-[var(--success-soft)] text-[var(--success-text)] text-xs font-bold tracking-wide border border-[var(--success)]/20">
                       {ep.method}
                     </span>
-                    <code className="font-mono text-base sm:text-lg text-zinc-900 dark:text-zinc-100 break-all">
+                    <code className="font-mono text-base sm:text-lg text-[var(--foreground)] break-all">
                       {ep.path}
                     </code>
                   </div>
-                  <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed">
+                  <p className="text-sm text-[var(--muted)] leading-relaxed">
                     {ep.summary}
                   </p>
                 </header>
 
-                <div className="p-5 sm:p-6 grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                <div className="p-5 sm:p-6 grid grid-cols-1 lg:grid-cols-2 gap-5">
                   <div>
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-2">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--subtle)] mb-2">
                       Data Source
                     </h4>
-                    <p className="text-xs sm:text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed">
+                    <p className="text-sm text-[var(--muted)] leading-relaxed">
                       {ep.dataSource}
                     </p>
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-2">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--subtle)] mb-2">
                       Response
                     </h4>
-                    <p className="text-xs sm:text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed">
+                    <p className="text-sm text-[var(--muted)] leading-relaxed">
                       {ep.response}
                     </p>
-                    <p className="mt-2 text-xs text-zinc-500 font-mono">
+                    <p className="mt-2 text-xs text-[var(--subtle)] font-mono">
                       Dimensions: {ep.dimensions}
                     </p>
                   </div>
                 </div>
 
-                <div className="px-5 sm:px-6 pb-3">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-2">
+                <div className="px-5 sm:px-6 pb-4">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--subtle)] mb-2">
                     Example URL
                   </h4>
-                  <pre className="p-3 rounded-lg bg-zinc-950 text-zinc-200 text-xs font-mono overflow-x-auto border border-zinc-800">
+                  <pre className="p-3 rounded-lg bg-[var(--code-bg)] text-[var(--code-fg)] text-xs font-mono overflow-x-auto border border-[var(--border)] shadow-inner">
                     <code>{ep.exampleUrl}</code>
                   </pre>
                 </div>
 
-                <div className="p-5 sm:p-6 border-t border-zinc-200 dark:border-zinc-800">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-3">
+                <div className="p-5 sm:p-6 border-t border-[var(--border)]">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--subtle)] mb-3">
                     Query Parameters
                   </h4>
-                  <div className="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-800">
+                  <div className="overflow-x-auto rounded-lg border border-[var(--border)]">
                     <table className="w-full text-left text-xs">
-                      <thead className="bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300 font-semibold">
+                      <thead className="bg-[var(--surface-2)] text-[var(--foreground)] font-semibold border-b border-[var(--border)]">
                         <tr>
-                          <th className="p-3">Name</th>
-                          <th className="p-3">Type</th>
-                          <th className="p-3">Default Source</th>
-                          <th className="p-3">Allowed</th>
-                          <th className="p-3">Description</th>
+                          <th className="p-3 font-semibold">Name</th>
+                          <th className="p-3 font-semibold">Type</th>
+                          <th className="p-3 font-semibold">Default Source</th>
+                          <th className="p-3 font-semibold">Allowed</th>
+                          <th className="p-3 font-semibold">Description</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800 font-mono">
+                      <tbody className="divide-y divide-[var(--border)] font-mono">
                         {ep.params.map((p) => (
-                          <tr key={p.name}>
-                            <td className="p-3 font-semibold text-blue-600 dark:text-blue-400 align-top break-all">
+                          <tr key={p.name} className="hover:bg-[var(--surface-2)]/50 transition-colors">
+                            <td className="p-3 font-semibold text-[var(--accent)] align-top break-all">
                               {p.name}
                             </td>
-                            <td className="p-3 text-zinc-500 align-top">{p.type}</td>
-                            <td className="p-3 text-zinc-500 align-top whitespace-nowrap">
+                            <td className="p-3 text-[var(--subtle)] align-top">{p.type}</td>
+                            <td className="p-3 text-[var(--subtle)] align-top whitespace-nowrap">
                               {p.defaultSource}
                             </td>
-                            <td className="p-3 text-zinc-700 dark:text-zinc-300 align-top">
+                            <td className="p-3 text-[var(--muted)] align-top">
                               {p.allowed}
                             </td>
-                            <td className="p-3 font-sans text-zinc-600 dark:text-zinc-400 align-top leading-relaxed">
+                            <td className="p-3 font-sans text-[var(--muted)] align-top leading-relaxed">
                               {p.description}
                             </td>
                           </tr>
@@ -562,25 +582,27 @@ export default function DocsPage() {
 
         {/* ============ PARAMETERS (consolidated) ============ */}
         <section id="parameters" className="mb-16">
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">
-            Consolidated Query Parameters
-          </h2>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-6">
-            Every parameter, every endpoint it applies to. Use this as the cheat-sheet.
-          </p>
+          <div className="mb-6">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
+              Consolidated Query Parameters
+            </h2>
+            <p className="text-sm text-[var(--muted)] mt-2 max-w-3xl">
+              Every parameter, every endpoint it applies to. Use this as the cheat-sheet.
+            </p>
+          </div>
 
-          <div className="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
-            <table className="w-full text-left text-xs sm:text-sm">
-              <thead className="bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300 font-semibold">
+          <div className={`overflow-x-auto ${cardClass}`}>
+            <table className="w-full text-left text-sm">
+              <thead className="bg-[var(--surface-2)] text-[var(--foreground)] font-semibold border-b border-[var(--border)]">
                 <tr>
-                  <th className="p-4">Parameter</th>
-                  <th className="p-4">Type</th>
-                  <th className="p-4">Default</th>
-                  <th className="p-4">Applies To</th>
-                  <th className="p-4">Description</th>
+                  <th className="p-4 font-semibold">Parameter</th>
+                  <th className="p-4 font-semibold">Type</th>
+                  <th className="p-4 font-semibold">Default</th>
+                  <th className="p-4 font-semibold">Applies To</th>
+                  <th className="p-4 font-semibold">Description</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800 font-mono text-xs">
+              <tbody className="divide-y divide-[var(--border)] font-mono text-xs">
                 {[
                   ['username', 'string', 'GITHUB_USERNAME env', 'all 4', 'GitHub login. Falls back to env, then "ahmedtrooper".'],
                   ['repo', 'string', 'GITHUB_REPO env', '/api/pin only', 'Either "name" or "owner/name". Required for /api/pin.'],
@@ -594,14 +616,14 @@ export default function DocsPage() {
                   ['text_color', 'hex', 'theme.text', 'all 4', '3/6/8-digit hex. Used for both label and value text.'],
                   ['width', 'integer', 'responsive', 'all 4', '200–4000. Locks intrinsic width; out-of-range falls back to fluid.'],
                 ].map(([name, type, def, scope, desc]) => (
-                  <tr key={name}>
-                    <td className="p-4 font-semibold text-blue-600 dark:text-blue-400 align-top break-all">
+                  <tr key={name} className="hover:bg-[var(--surface-2)] transition-colors">
+                    <td className="p-4 font-semibold text-[var(--accent)] align-top break-all">
                       {name}
                     </td>
-                    <td className="p-4 text-zinc-500 align-top">{type}</td>
-                    <td className="p-4 text-zinc-500 align-top whitespace-nowrap">{def}</td>
-                    <td className="p-4 text-zinc-700 dark:text-zinc-300 align-top">{scope}</td>
-                    <td className="p-4 font-sans text-zinc-600 dark:text-zinc-400 align-top leading-relaxed">
+                    <td className="p-4 text-[var(--subtle)] align-top">{type}</td>
+                    <td className="p-4 text-[var(--subtle)] align-top whitespace-nowrap">{def}</td>
+                    <td className="p-4 text-[var(--muted)] align-top">{scope}</td>
+                    <td className="p-4 font-sans text-[var(--muted)] align-top leading-relaxed">
                       {desc}
                     </td>
                   </tr>
@@ -613,29 +635,31 @@ export default function DocsPage() {
 
         {/* ============ THEMES ============ */}
         <section id="themes" className="mb-16">
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">Themes</h2>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-6">
-            Seven preset palettes. Each row shows the actual hex values used for the
-            card background, border, title, body text, bold values, fire/accent,
-            badge background, and badge text.
-          </p>
+          <div className="mb-6">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Themes</h2>
+            <p className="text-sm text-[var(--muted)] mt-2 max-w-3xl">
+              Seven preset palettes. Each row shows the actual hex values used for the
+              card background, border, title, body text, bold values, fire/accent,
+              badge background, and badge text.
+            </p>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {(Object.entries(THEMES) as [CardTheme, (typeof THEMES)[CardTheme]][]).map(
               ([id, c]) => (
                 <div
                   key={id}
-                  className="rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden"
+                  className={`${cardClass} overflow-hidden`}
                 >
                   <div
-                    className="p-5 border-b"
+                    className="p-5 border-b border-[var(--border)]"
                     style={{
                       background: c.bg,
                       borderColor: c.border,
                       color: c.text,
                     }}
                   >
-                    <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center justify-between mb-3">
                       <code
                         className="font-mono text-xs"
                         style={{ color: c.title }}
@@ -654,7 +678,7 @@ export default function DocsPage() {
                       </span>
                     </div>
                     <p
-                      className="text-lg font-bold"
+                      className="text-lg font-bold mb-1"
                       style={{ color: c.title }}
                     >
                       Sample Title
@@ -664,13 +688,13 @@ export default function DocsPage() {
                       <span style={{ color: c.bold, fontWeight: 700 }}>Bold value</span>
                     </p>
                   </div>
-                  <div className="p-4 bg-white dark:bg-zinc-900 font-mono text-xs space-y-1">
+                  <div className="p-4 bg-[var(--surface)] font-mono text-xs space-y-1.5">
                     {(['bg', 'border', 'title', 'text', 'bold', 'fire', 'badgeBg', 'badgeText'] as const).map(
                       (k) => (
-                        <div key={k} className="flex items-center gap-2">
-                          <span className="w-3 h-3 rounded-sm border border-zinc-300 dark:border-zinc-700 flex-shrink-0" style={{ background: c[k] }} />
-                          <span className="text-zinc-500 w-20">{k}</span>
-                          <span className="text-zinc-900 dark:text-zinc-100">{c[k]}</span>
+                        <div key={k} className="flex items-center gap-2.5">
+                          <span className="w-3 h-3 rounded-sm border border-[var(--border-strong)] flex-shrink-0" style={{ background: c[k] }} />
+                          <span className="text-[var(--subtle)] w-20">{k}</span>
+                          <span className="text-[var(--foreground)]">{c[k]}</span>
                         </div>
                       )
                     )}
@@ -683,31 +707,33 @@ export default function DocsPage() {
 
         {/* ============ RESPONSE HEADERS ============ */}
         <section id="headers" className="mb-16">
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">
-            Response Headers
-          </h2>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-6">
-            Every successful and error response carries these headers.
-          </p>
-          <div className="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
-            <table className="w-full text-left text-xs sm:text-sm">
-              <thead className="bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300 font-semibold">
+          <div className="mb-6">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
+              Response Headers
+            </h2>
+            <p className="text-sm text-[var(--muted)] mt-2 max-w-3xl">
+              Every successful and error response carries these headers.
+            </p>
+          </div>
+          <div className={`overflow-x-auto ${cardClass}`}>
+            <table className="w-full text-left text-sm">
+              <thead className="bg-[var(--surface-2)] text-[var(--foreground)] font-semibold border-b border-[var(--border)]">
                 <tr>
-                  <th className="p-4">Header</th>
-                  <th className="p-4">Value</th>
-                  <th className="p-4">When / Note</th>
+                  <th className="p-4 font-semibold">Header</th>
+                  <th className="p-4 font-semibold">Value</th>
+                  <th className="p-4 font-semibold">When / Note</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
+              <tbody className="divide-y divide-[var(--border)]">
                 {RESPONSE_HEADERS.map((h, i) => (
-                  <tr key={i}>
-                    <td className="p-4 font-mono font-semibold text-blue-600 dark:text-blue-400 align-top">
+                  <tr key={i} className="hover:bg-[var(--surface-2)] transition-colors">
+                    <td className="p-4 font-mono font-semibold text-[var(--accent)] align-top">
                       {h.name}
                     </td>
-                    <td className="p-4 font-mono text-xs text-zinc-900 dark:text-zinc-100 align-top break-all">
+                    <td className="p-4 font-mono text-xs text-[var(--foreground)] align-top break-all">
                       {h.value}
                     </td>
-                    <td className="p-4 font-sans text-zinc-600 dark:text-zinc-400 align-top leading-relaxed">
+                    <td className="p-4 font-sans text-[var(--muted)] align-top leading-relaxed">
                       {h.note}
                     </td>
                   </tr>
@@ -719,80 +745,72 @@ export default function DocsPage() {
 
         {/* ============ ERRORS ============ */}
         <section id="errors" className="mb-16">
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">
-            Error Handling
-          </h2>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-6">
-            Every error path returns a styled SVG error card with HTTP 200 — never a
-            broken image or a 5xx. The embed in your README keeps rendering.
-          </p>
+          <div className="mb-6">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
+              Error Handling
+            </h2>
+            <p className="text-sm text-[var(--muted)] mt-2 max-w-3xl">
+              Every error path returns a styled SVG error card with HTTP 200 — never a
+              broken image or a 5xx. The embed in your README keeps rendering.
+            </p>
+          </div>
 
-          <div className="space-y-3">
-            {[
-              {
-                status: 'Triggered when',
-                examples: [
-                  ['GITHUB_TOKEN missing', 'When the env var is unset and /api/stats falls back to REST, but the fallback still requires a token for higher rate limits.'],
-                  ['GitHub user not found', 'When the username resolves to a 404. The card returns "GitHub user \'X\' not found".'],
-                  ['Repo not found or private', 'On /api/pin when the owner/name pair does not resolve. Returns "Repository \'X/Y\' not found or is private".'],
-                  ['GraphQL network error', 'When GitHub returns 5xx or the fetch itself throws. /api/stats falls back to REST transparently; other endpoints surface the error.'],
-                  ['Missing required query param', 'On /api/pin without ?repo and no GITHUB_REPO env — returns "Missing repo parameter. Specify ?repo=repo-name or set GITHUB_REPO."'],
-                  ['Invalid ?width', 'Out of [200, 4000] or non-numeric — silently ignored, falls back to responsive.'],
-                  ['Invalid ?theme', 'Unknown theme id — silently falls back to "light".'],
-                  ['Invalid hex in color override', 'Non-hex string — silently ignored, falls back to theme value.'],
-                ],
-              },
-            ].map((group, i) => (
-              <div
-                key={i}
-                className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5"
-              >
-                <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-3">
-                  {group.status}
-                </h3>
-                <ul className="space-y-2">
-                  {group.examples.map(([title, body]) => (
-                    <li key={title} className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                      <code className="text-xs font-semibold text-blue-600 dark:text-blue-400 sm:col-span-1">
-                        {title}
-                      </code>
-                      <span className="text-xs sm:text-sm text-zinc-700 dark:text-zinc-300 sm:col-span-2 leading-relaxed">
-                        {body}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+          <div className={`${cardClass} p-5 sm:p-6`}>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--subtle)] mb-4">
+              Triggered when
+            </h3>
+            <ul className="space-y-3">
+              {[
+                ['GITHUB_TOKEN missing', 'When the env var is unset and /api/stats falls back to REST, but the fallback still requires a token for higher rate limits.'],
+                ['GitHub user not found', "When the username resolves to a 404. The card returns \"GitHub user 'X' not found\"."],
+                ['Repo not found or private', "On /api/pin when the owner/name pair does not resolve. Returns \"Repository 'X/Y' not found or is private\"."],
+                ['GraphQL network error', 'When GitHub returns 5xx or the fetch itself throws. /api/stats falls back to REST transparently; other endpoints surface the error.'],
+                ['Missing required query param', 'On /api/pin without ?repo and no GITHUB_REPO env — returns "Missing repo parameter. Specify ?repo=repo-name or set GITHUB_REPO."'],
+                ['Invalid ?width', 'Out of [200, 4000] or non-numeric — silently ignored, falls back to responsive.'],
+                ['Invalid ?theme', 'Unknown theme id — silently falls back to "light".'],
+                ['Invalid hex in color override', 'Non-hex string — silently ignored, falls back to theme value.'],
+              ].map(([title, body]) => (
+                <li key={title} className="grid grid-cols-1 sm:grid-cols-3 gap-3 py-2 border-b border-[var(--border)] last:border-0">
+                  <code className="text-sm font-semibold text-[var(--accent)] sm:col-span-1">
+                    {title}
+                  </code>
+                  <span className="text-sm text-[var(--muted)] sm:col-span-2 leading-relaxed">
+                    {body}
+                  </span>
+                </li>
+              ))}
+            </ul>
           </div>
         </section>
 
         {/* ============ ENVIRONMENT VARIABLES ============ */}
         <section id="environment" className="mb-16">
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">
-            Environment Variables
-          </h2>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-6">
-            Configure these in Vercel Project Settings → Environment Variables before
-            the first deploy. Only GITHUB_TOKEN is strictly required.
-          </p>
+          <div className="mb-6">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
+              Environment Variables
+            </h2>
+            <p className="text-sm text-[var(--muted)] mt-2 max-w-3xl">
+              Configure these in Vercel Project Settings → Environment Variables before
+              the first deploy. Only GITHUB_TOKEN is strictly required.
+            </p>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {ENV_VARS.map((e) => (
               <div
                 key={e.name}
-                className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5"
+                className={`${cardClass} p-5`}
               >
                 <div className="flex items-center gap-2 mb-2">
-                  <code className="font-mono text-sm font-bold text-blue-600 dark:text-blue-400 break-all">
+                  <code className="font-mono text-sm font-bold text-[var(--accent)] break-all">
                     {e.name}
                   </code>
                   {e.required && (
-                    <span className="px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 text-[10px] font-bold tracking-wide">
+                    <span className="px-2 py-0.5 rounded-md bg-[var(--danger-soft)] text-[var(--danger-text)] text-[10px] font-bold tracking-wide border border-[var(--danger)]/20">
                       REQUIRED
                     </span>
                   )}
                 </div>
-                <p className="text-xs sm:text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed">
+                <p className="text-sm text-[var(--muted)] leading-relaxed">
                   {e.description}
                 </p>
               </div>
@@ -802,35 +820,37 @@ export default function DocsPage() {
 
         {/* ============ RATE LIMITS ============ */}
         <section id="rate-limits" className="mb-16">
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">
-            Rate Limits
-          </h2>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-6">
-            Limits you actually hit when serving a popular README.
-          </p>
-          <div className="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
-            <table className="w-full text-left text-xs sm:text-sm">
-              <thead className="bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300 font-semibold">
+          <div className="mb-6">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
+              Rate Limits
+            </h2>
+            <p className="text-sm text-[var(--muted)] mt-2 max-w-3xl">
+              Limits you actually hit when serving a popular README.
+            </p>
+          </div>
+          <div className={`overflow-x-auto ${cardClass}`}>
+            <table className="w-full text-left text-sm">
+              <thead className="bg-[var(--surface-2)] text-[var(--foreground)] font-semibold border-b border-[var(--border)]">
                 <tr>
-                  <th className="p-4">Scope</th>
-                  <th className="p-4">Anonymous</th>
-                  <th className="p-4">Authenticated</th>
-                  <th className="p-4">Notes</th>
+                  <th className="p-4 font-semibold">Scope</th>
+                  <th className="p-4 font-semibold">Anonymous</th>
+                  <th className="p-4 font-semibold">Authenticated</th>
+                  <th className="p-4 font-semibold">Notes</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
+              <tbody className="divide-y divide-[var(--border)]">
                 {RATE_LIMITS.map((r) => (
-                  <tr key={r.scope}>
-                    <td className="p-4 font-semibold text-zinc-900 dark:text-zinc-100 align-top">
+                  <tr key={r.scope} className="hover:bg-[var(--surface-2)] transition-colors">
+                    <td className="p-4 font-semibold text-[var(--foreground)] align-top">
                       {r.scope}
                     </td>
-                    <td className="p-4 font-mono text-xs text-zinc-700 dark:text-zinc-300 align-top">
+                    <td className="p-4 font-mono text-xs text-[var(--muted)] align-top">
                       {r.anonymous}
                     </td>
-                    <td className="p-4 font-mono text-xs text-zinc-700 dark:text-zinc-300 align-top">
+                    <td className="p-4 font-mono text-xs text-[var(--muted)] align-top">
                       {r.authenticated}
                     </td>
-                    <td className="p-4 font-sans text-zinc-600 dark:text-zinc-400 align-top leading-relaxed text-xs">
+                    <td className="p-4 font-sans text-[var(--muted)] align-top leading-relaxed text-sm">
                       {r.note}
                     </td>
                   </tr>
@@ -842,13 +862,15 @@ export default function DocsPage() {
 
         {/* ============ CACHING ============ */}
         <section id="caching" className="mb-16">
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">
-            Caching Strategy
-          </h2>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-6">
-            How a single GitHub fetch serves thousands of README views.
-          </p>
-          <ol className="space-y-4 list-decimal pl-6">
+          <div className="mb-6">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
+              Caching Strategy
+            </h2>
+            <p className="text-sm text-[var(--muted)] mt-2 max-w-3xl">
+              How a single GitHub fetch serves thousands of README views.
+            </p>
+          </div>
+          <ol className={`${cardClass} p-5 sm:p-6 space-y-4 list-decimal pl-10`}>
             {[
               'Browser sends GET /api/stats. Browser cache is bypassed (max-age=0).',
               'Vercel Edge CDN checks its cache. If a cached SVG is <5h old, it is served immediately. No GitHub API call. No compute time.',
@@ -859,7 +881,7 @@ export default function DocsPage() {
             ].map((step, i) => (
               <li
                 key={i}
-                className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed"
+                className="text-sm text-[var(--muted)] leading-relaxed marker:text-[var(--accent)] marker:font-bold"
               >
                 {step}
               </li>
@@ -869,16 +891,18 @@ export default function DocsPage() {
 
         {/* ============ EMBED EXAMPLES ============ */}
         <section id="embed" className="mb-16">
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">
-            Embed Examples
-          </h2>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-6">
-            Drop these into any GitHub README, GitLab, Bitbucket, or static site.
-            Replace <code className="font-mono text-xs">your-domain.com</code> with
-            your deployed GitGlyph URL (or the canonical{' '}
-            <code className="font-mono text-xs">git-glyph.vercel.app</code> for the
-            hosted version).
-          </p>
+          <div className="mb-6">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
+              Embed Examples
+            </h2>
+            <p className="text-sm text-[var(--muted)] mt-2 max-w-3xl">
+              Drop these into any GitHub README, GitLab, Bitbucket, or static site.
+              Replace <code className="font-mono text-xs px-1.5 py-0.5 rounded bg-[var(--code-inline-bg)] text-[var(--code-inline-fg)]">your-domain.com</code> with
+              your deployed GitGlyph URL (or the canonical{' '}
+              <code className="font-mono text-xs px-1.5 py-0.5 rounded bg-[var(--code-inline-bg)] text-[var(--code-inline-fg)]">git-glyph.vercel.app</code> for the
+              hosted version).
+            </p>
+          </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {[
@@ -924,14 +948,14 @@ export default function DocsPage() {
             ].map((ex) => (
               <div
                 key={ex.title}
-                className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden"
+                className={`${cardClass} overflow-hidden`}
               >
-                <div className="px-4 py-2 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50">
-                  <h3 className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                <div className="px-4 py-2.5 border-b border-[var(--border)] bg-[var(--surface-2)]">
+                  <h3 className="text-xs font-semibold text-[var(--muted)]">
                     {ex.title}
                   </h3>
                 </div>
-                <pre className="p-4 bg-zinc-950 text-zinc-200 text-xs font-mono overflow-x-auto">
+                <pre className="p-4 bg-[var(--code-bg)] text-[var(--code-fg)] text-xs font-mono overflow-x-auto">
                   <code>{ex.snippet}</code>
                 </pre>
               </div>
@@ -940,7 +964,7 @@ export default function DocsPage() {
         </section>
 
         {/* Footer */}
-        <footer className="pt-8 border-t border-zinc-200 dark:border-zinc-800 text-xs text-zinc-500 text-center">
+        <footer className="pt-8 border-t border-[var(--border)] text-xs text-[var(--subtle)] text-center">
           GitGlyph · Self-Hosted Dynamic GitHub Stats · Source-of-truth API reference
         </footer>
       </main>
